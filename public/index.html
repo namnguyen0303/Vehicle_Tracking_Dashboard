@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hollywood Microtransit Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- OpenLayers from CDN (CSS + JS) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/ol@v9.2.4/ol.css"
+    />
+  </head>
+  <body>
+    <div id="login-overlay">
+      <div class="login-card">
+        <h2>Staff Login</h2>
+        <p class="login-subtitle">Hollywood Microtransit Dashboard</p>
+        <form id="login-form">
+          <label class="login-label">
+            Username
+            <input id="login-username" type="text" autocomplete="username" required />
+          </label>
+          <label class="login-label">
+            Password
+            <input
+              id="login-password"
+              type="password"
+              autocomplete="current-password"
+              required
+            />
+          </label>
+          <button type="submit" class="login-button">Sign in</button>
+          <p class="login-hint">Use staff / password for now.</p>
+          <p id="login-error" class="login-error" aria-live="assertive"></p>
+        </form>
+      </div>
+    </div>
+
+    <div id="app">
+      <header class="app-header">
+        <div class="app-header-row">
+          <div class="app-header-brand">
+            <h1>Hollywood Microtransit</h1>
+            <span class="app-subtitle">Real-time monitoring dashboard</span>
+          </div>
+          <div class="app-header-actions">
+            <div id="connection-status" class="status-badge" title="WebSocket status">
+              <span class="status-dot"></span>
+              <span class="status-text">Connecting…</span>
+            </div>
+            <button type="button" id="logout-btn" class="logout-btn">Log out</button>
+          </div>
+        </div>
+      </header>
+      <main class="app-main">
+        <section class="map-panel">
+          <div id="map-root"></div>
+          <div id="map-legend" class="map-legend">
+            <span class="legend-item">
+              <span class="legend-dot legend-dot--green"></span>
+              Inside zone
+            </span>
+            <span class="legend-item">
+              <span class="legend-dot legend-dot--red"></span>
+              Outside zone
+            </span>
+          </div>
+        </section>
+        <section class="side-panel">
+          <div class="side-panel-header">
+            <h2>Live Alerts</h2>
+            <span id="alerts-count" class="alerts-count">0</span>
+          </div>
+          <ul id="alerts-list"></ul>
+          <div id="alerts-empty" class="alerts-empty">No alerts yet</div>
+        </section>
+      </main>
+      <footer class="app-footer">
+        <span>City of Hollywood • Microtransit Monitoring</span>
+        <span class="footer-tech">REST API → WebSocket → OpenLayers</span>
+      </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ol@v9.2.4/dist/ol.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
+
