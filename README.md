@@ -1,5 +1,7 @@
 # Hollywood Microtransit Monitoring Dashboard
 
+#update
+
 A real-time web-based monitoring system for the City of Hollywood's microtransit fleet. Built for 50–100 vehicles with zone compliance tracking and live alerts.
 
 ## Architecture
@@ -42,12 +44,12 @@ Copy `.env.example` to `.env` and adjust as needed:
 cp .env.example .env
 ```
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | HTTP server port | `3000` |
-| `DISABLE_DB` | Skip PostgreSQL (simulation mode) | `false` |
-| `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` | PostgreSQL connection | see `.env.example` |
-| `RIDECIRCUIT_POLL_INTERVAL_MS` | Polling interval (ms) | `10000` |
+| Variable                                                 | Description                       | Default            |
+| -------------------------------------------------------- | --------------------------------- | ------------------ |
+| `PORT`                                                   | HTTP server port                  | `3000`             |
+| `DISABLE_DB`                                             | Skip PostgreSQL (simulation mode) | `false`            |
+| `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` | PostgreSQL connection             | see `.env.example` |
+| `RIDECIRCUIT_POLL_INTERVAL_MS`                           | Polling interval (ms)             | `10000`            |
 
 **For demo or development without PostgreSQL:** set `DISABLE_DB=true` in `.env`.
 
@@ -63,7 +65,7 @@ npm start
 
 ### 4. Open the dashboard
 
-- **URL:** http://localhost:3000  
+- **URL:** http://localhost:3000
 - **Login:** `staff` / `password` (placeholder credentials)
 
 ## Project Structure
@@ -90,13 +92,13 @@ Hollywood-app/
 
 ## API Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/login` | Staff login |
-| GET | `/api/vehicles` | List vehicles with latest positions |
-| GET | `/api/zones` | List authorized zones |
-| GET | `/api/alerts` | List recent alerts |
-| GET | `/health` | Health check |
+| Method | Path            | Description                         |
+| ------ | --------------- | ----------------------------------- |
+| POST   | `/api/login`    | Staff login                         |
+| GET    | `/api/vehicles` | List vehicles with latest positions |
+| GET    | `/api/zones`    | List authorized zones               |
+| GET    | `/api/alerts`   | List recent alerts                  |
+| GET    | `/health`       | Health check                        |
 
 ## WebSocket
 
