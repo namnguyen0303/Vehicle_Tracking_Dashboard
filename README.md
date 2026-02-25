@@ -13,9 +13,8 @@ Custom REST API (Express) ←─────────┘
         ↓
 WebSocket Server (Node.js)
         ↓
-Render (cloud hosting)
-        ↓
 OpenLayers Dashboard (staff-only)
+        (local or on-premise deployment)
 ```
 
 - **Backend:** Node.js, Express, WebSocket, PostgreSQL + PostGIS
@@ -121,9 +120,9 @@ psql -d hollywood_microtransit -f sql/schema.sql
 
 ## Roadmap
 
-- [ ] Samsara API integration (add SAMSARA_API_TOKEN when ready)
+- [x] Samsara API integration
 - [ ] PostgreSQL + PostGIS production setup
-- [ ] Deploy to Render
+- [ ] On-premise deployment (city GIS infrastructure)
 - [ ] Authorized zone CRUD for admins
 
 ## License
