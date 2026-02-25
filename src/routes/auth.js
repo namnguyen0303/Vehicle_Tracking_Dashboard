@@ -2,19 +2,22 @@ const express = require('express');
 
 const router = express.Router();
 
-// For now, we keep auth extremely simple:
-// - Hard-coded staff user (username: staff, password: password)
-// - Returns a dummy token on success
-// This can later be swapped for a real auth system (JWT, OAuth, etc.).
+const USERS = [
+  { username: 'staff', password: 'password', role: 'staff' },
+  { username: 'admin', password: 'password', role: 'admin' },
+  { username: 'viewer', password: 'password', role: 'viewer' },
+];
 
 router.post('/login', (req, res) => {
   const { username, password } = req.body || {};
 
-  if (username === 'staff' && password === 'password') {
+  const user = USERS.find((u) => u.username === username && u.password === password);
+
+  if (user) {
     return res.json({
       success: true,
       token: 'demo-token',
-      user: { username: 'staff', role: 'staff' },
+      user: { username: user.username, role: user.role },
     });
   }
 
@@ -25,4 +28,3 @@ router.post('/login', (req, res) => {
 });
 
 module.exports = router;
-

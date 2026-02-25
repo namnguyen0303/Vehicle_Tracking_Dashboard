@@ -1,11 +1,8 @@
 const WebSocket = require('ws');
 
 /**
- * Simple WebSocket server that will broadcast vehicle and alert updates
+ * Simple WebSocket server that broadcasts vehicle and alert updates
  * to connected dashboard clients.
- *
- * Architecture path:
- *   Custom REST API (Express) -> WebSocket Server (this file) -> Render -> OpenLayers UI
  */
 function createWebSocketServer(httpServer) {
   const wss = new WebSocket.Server({ server: httpServer, path: '/ws' });
@@ -14,7 +11,6 @@ function createWebSocketServer(httpServer) {
     console.log('WebSocket client connected');
 
     ws.on('message', (data) => {
-      // For now, just log. Later we can support simple client pings or filters.
       console.log('Received message from client:', data.toString());
     });
 
@@ -30,10 +26,6 @@ function createWebSocketServer(httpServer) {
     );
   });
 
-  /**
-   * Broadcast helper – other services (e.g., RideCircuit poller)
-   * will use this to push real-time vehicle and alert updates.
-   */
   function broadcast(payload) {
     const data = typeof payload === 'string' ? payload : JSON.stringify(payload);
     wss.clients.forEach((client) => {
@@ -49,4 +41,3 @@ function createWebSocketServer(httpServer) {
 module.exports = {
   createWebSocketServer,
 };
-

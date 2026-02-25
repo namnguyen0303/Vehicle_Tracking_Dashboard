@@ -15,6 +15,15 @@ const env = {
   // Useful while you are still setting up PostgreSQL/PostGIS.
   disableDb: process.env.DISABLE_DB === 'true',
 
+  // JWT authentication
+  jwt: {
+    secret: process.env.JWT_SECRET || 'change-me-in-production',
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
+  },
+
+  // When true, WebSocket requires valid JWT. Set to 'false' for debugging only.
+  wsRequireAuth: process.env.WS_REQUIRE_AUTH !== 'false',
+
   // PostgreSQL connection (used by pg client)
   db: {
     host: process.env.PGHOST || 'localhost',

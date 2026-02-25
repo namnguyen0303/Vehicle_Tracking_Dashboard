@@ -15,8 +15,6 @@ const loginUsernameInput = document.getElementById('login-username');
 const loginPasswordInput = document.getElementById('login-password');
 const loginError = document.getElementById('login-error');
 
-let authToken = null;
-
 // --- Alert list helpers ----------------------------------------------------
 
 const MAX_ALERTS_DISPLAYED = 50;
@@ -319,7 +317,6 @@ function handleLoginSubmit(event) {
       if (!data || !data.success) {
         throw new Error('Invalid credentials');
       }
-      authToken = data.token;
       if (loginOverlay) {
         loginOverlay.classList.add('hidden');
       }
@@ -332,11 +329,7 @@ function handleLoginSubmit(event) {
 }
 
 function logout() {
-  authToken = null;
-  if (loginOverlay) {
-    loginOverlay.classList.remove('hidden');
-  }
-  // Clear form
+  if (loginOverlay) loginOverlay.classList.remove('hidden');
   if (loginUsernameInput) loginUsernameInput.value = '';
   if (loginPasswordInput) loginPasswordInput.value = '';
   if (loginError) loginError.textContent = '';
@@ -345,8 +338,6 @@ function logout() {
 function bootstrap() {
   if (loginForm) {
     loginForm.addEventListener('submit', handleLoginSubmit);
-  } else {
-    startDashboard();
   }
   if (logoutBtn) {
     logoutBtn.addEventListener('click', logout);

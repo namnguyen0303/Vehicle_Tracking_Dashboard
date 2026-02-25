@@ -18,7 +18,7 @@ app.use(express.json());
 app.use('/api/vehicles', require('./routes/vehicles'));
 app.use('/api/zones', require('./routes/zones'));
 app.use('/api/alerts', require('./routes/alerts'));
-app.use('/api', require('./routes/auth')); // exposes POST /api/login
+app.use('/api', require('./routes/auth')); // POST /api/login
 
 // Serve static dashboard (OpenLayers frontend will live in /public)
 const publicDir = path.join(__dirname, '..', 'public');

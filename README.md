@@ -48,6 +48,8 @@ cp .env.example .env
 | -------------------------------------------------------- | --------------------------------- | ------------------ |
 | `PORT`                                                   | HTTP server port                  | `3000`             |
 | `DISABLE_DB`                                             | Skip PostgreSQL (simulation mode) | `false`            |
+| `JWT_SECRET`                                             | Secret for signing JWTs          | `change-me-in-production` |
+| `JWT_EXPIRES_IN`                                        | Token expiry (e.g. `24h`, `7d`)  | `24h`              |
 | `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` | PostgreSQL connection             | see `.env.example` |
 | `RIDECIRCUIT_POLL_INTERVAL_MS`                           | Polling interval (ms)             | `10000`            |
 
