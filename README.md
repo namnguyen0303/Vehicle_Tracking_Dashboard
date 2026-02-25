@@ -7,7 +7,7 @@ A real-time web-based monitoring system for the City of Hollywood's microtransit
 ## Architecture
 
 ```
-RideCircuit API (future) → Poller → PostgreSQL+PostGIS
+Samsara API → Vehicle Poller → PostgreSQL+PostGIS
                                     ↓
 Custom REST API (Express) ←─────────┘
         ↓
@@ -48,10 +48,10 @@ cp .env.example .env
 | -------------------------------------------------------- | --------------------------------- | ------------------ |
 | `PORT`                                                   | HTTP server port                  | `3000`             |
 | `DISABLE_DB`                                             | Skip PostgreSQL (simulation mode) | `false`            |
-| `JWT_SECRET`                                             | Secret for signing JWTs          | `change-me-in-production` |
-| `JWT_EXPIRES_IN`                                        | Token expiry (e.g. `24h`, `7d`)  | `24h`              |
+| `SAMSARA_BASE_URL`                                      | Samsara API base URL              | `https://api.samsara.com` |
+| `SAMSARA_API_TOKEN`                                      | Samsara API token (Bearer)       | _(required for real data)_ |
+| `SAMSARA_POLL_INTERVAL_MS`                               | Polling interval (ms)             | `10000`            |
 | `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD` | PostgreSQL connection             | see `.env.example` |
-| `RIDECIRCUIT_POLL_INTERVAL_MS`                           | Polling interval (ms)             | `10000`            |
 
 **For demo or development without PostgreSQL:** set `DISABLE_DB=true` in `.env`.
 
@@ -121,7 +121,7 @@ psql -d hollywood_microtransit -f sql/schema.sql
 
 ## Roadmap
 
-- [ ] RideCircuit API integration (when key is available)
+- [ ] Samsara API integration (add SAMSARA_API_TOKEN when ready)
 - [ ] PostgreSQL + PostGIS production setup
 - [ ] Deploy to Render
 - [ ] Authorized zone CRUD for admins

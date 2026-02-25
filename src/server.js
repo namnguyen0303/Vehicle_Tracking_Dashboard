@@ -6,7 +6,7 @@ const cors = require('cors');
 const path = require('path');
 
 const { createWebSocketServer } = require('./ws/websocketServer');
-const { startSimulatedPoller } = require('./services/rideCircuitPoller');
+const { startVehiclePoller } = require('./services/vehiclePoller');
 
 const app = express();
 
@@ -33,9 +33,7 @@ app.get('/health', (req, res) => {
 const server = http.createServer(app);
 const { broadcast } = createWebSocketServer(server);
 
-// Start simulated polling of vehicle data.
-// This will later be swapped to call the real RideCircuit API when available.
-startSimulatedPoller({ broadcast });
+startVehiclePoller({ broadcast });
 
 const PORT = process.env.PORT || 3000;
 

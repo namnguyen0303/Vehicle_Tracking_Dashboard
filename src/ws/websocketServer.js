@@ -7,14 +7,23 @@ const WebSocket = require('ws');
 function createWebSocketServer(httpServer) {
   const wss = new WebSocket.Server({ server: httpServer, path: '/ws' });
 
+  const HEARTBEAT_INTERVAL = 30000; // 30 seconds – keeps connection alive
+
   wss.on('connection', (ws) => {
     console.log('WebSocket client connected');
+
+    const heartbeat = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.ping();
+      }
+    }, HEARTBEAT_INTERVAL);
 
     ws.on('message', (data) => {
       console.log('Received message from client:', data.toString());
     });
 
     ws.on('close', () => {
+      clearInterval(heartbeat);
       console.log('WebSocket client disconnected');
     });
 
