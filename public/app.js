@@ -173,13 +173,13 @@ function createVehicleStyle({ inAnyZone }) {
   const Fill = ol.style.Fill;
   const Stroke = ol.style.Stroke;
 
-  const fillColor = inAnyZone ? 'rgba(34,197,94,0.9)' : 'rgba(239,68,68,0.9)'; // green vs red
+  const fillColor = inAnyZone ? 'rgba(16,185,129,0.92)' : 'rgba(244,63,94,0.92)';
 
   return new Style({
     image: new Circle({
-      radius: 6,
+      radius: 7,
       fill: new Fill({ color: fillColor }),
-      stroke: new Stroke({ color: '#0f172a', width: 1 }),
+      stroke: new Stroke({ color: 'rgba(12,15,20,0.9)', width: 1.5 }),
     }),
   });
 }
@@ -191,10 +191,10 @@ function createZoneStyle() {
 
   return new Style({
     fill: new Fill({
-      color: 'rgba(45, 212, 191, 0.15)',
+      color: 'rgba(20, 184, 166, 0.12)',
     }),
     stroke: new Stroke({
-      color: 'rgba(45, 212, 191, 0.6)',
+      color: 'rgba(20, 184, 166, 0.5)',
       width: 2,
     }),
   });
@@ -208,9 +208,9 @@ function createAlertStyle() {
 
   return new Style({
     image: new Circle({
-      radius: 5,
-      fill: new Fill({ color: 'rgba(234,179,8,0.9)' }), // amber
-      stroke: new Stroke({ color: '#0f172a', width: 1 }),
+      radius: 6,
+      fill: new Fill({ color: 'rgba(245,158,11,0.9)' }),
+      stroke: new Stroke({ color: 'rgba(12,15,20,0.9)', width: 1.5 }),
     }),
   });
 }

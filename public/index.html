@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/styles.css" />
     <!-- OpenLayers from CDN (CSS + JS) -->
     <link
@@ -22,7 +25,12 @@
         <form id="login-form">
           <label class="login-label">
             Username
-            <input id="login-username" type="text" autocomplete="username" required />
+            <input
+              id="login-username"
+              type="text"
+              autocomplete="username"
+              required
+            />
           </label>
           <label class="login-label">
             Password
@@ -48,11 +56,17 @@
             <span class="app-subtitle">Real-time monitoring dashboard</span>
           </div>
           <div class="app-header-actions">
-            <div id="connection-status" class="status-badge" title="WebSocket status">
+            <div
+              id="connection-status"
+              class="status-badge"
+              title="WebSocket status"
+            >
               <span class="status-dot"></span>
               <span class="status-text">Connecting…</span>
             </div>
-            <button type="button" id="logout-btn" class="logout-btn">Log out</button>
+            <button type="button" id="logout-btn" class="logout-btn">
+              Log out
+            </button>
           </div>
         </div>
       </header>
@@ -88,7 +102,9 @@
           <div class="panel-section">
             <h2 class="panel-section-title">Fleet</h2>
             <ul id="vehicles-list" class="vehicles-list"></ul>
-            <div id="vehicles-empty" class="panel-empty">Waiting for vehicle data…</div>
+            <div id="vehicles-empty" class="panel-empty">
+              Waiting for vehicle data…
+            </div>
           </div>
           <div class="panel-section panel-section--alerts">
             <div class="panel-section-header">
@@ -110,4 +126,3 @@
     <script src="/app.js"></script>
   </body>
 </html>
-
