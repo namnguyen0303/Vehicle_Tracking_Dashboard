@@ -6,7 +6,15 @@
 const alertsList = document.getElementById('alerts-list');
 const alertsCount = document.getElementById('alerts-count');
 const alertsEmpty = document.getElementById('alerts-empty');
+const vehiclesList = document.getElementById('vehicles-list');
+const vehiclesEmpty = document.getElementById('vehicles-empty');
+const statVehicles = document.getElementById('stat-vehicles');
+const statInZone = document.getElementById('stat-in-zone');
+const statOutZone = document.getElementById('stat-out-zone');
 const connectionStatus = document.getElementById('connection-status');
+
+// Track vehicle state for stats and fleet list
+const vehicleStateById = {};
 const mapRoot = document.getElementById('map-root');
 const loginOverlay = document.getElementById('login-overlay');
 const loginForm = document.getElementById('login-form');
@@ -31,6 +39,42 @@ function updateAlertsUI() {
   const count = alertsList ? alertsList.children.length : 0;
   if (alertsCount) alertsCount.textContent = count;
   if (alertsEmpty) alertsEmpty.classList.toggle('hidden', count > 0);
+}
+
+function updateVehicleStats() {
+  const ids = Object.keys(vehicleStateById);
+  const total = ids.length;
+  let inZone = 0;
+  ids.forEach((id) => {
+    if (vehicleStateById[id]?.inAnyZone) inZone++;
+  });
+  const outZone = total - inZone;
+  if (statVehicles) statVehicles.textContent = total;
+  if (statInZone) statInZone.textContent = inZone;
+  if (statOutZone) statOutZone.textContent = outZone;
+}
+
+function updateVehiclesList() {
+  if (!vehiclesList) return;
+  const ids = Object.keys(vehicleStateById);
+  vehiclesList.innerHTML = '';
+  if (ids.length === 0) {
+    if (vehiclesEmpty) vehiclesEmpty.classList.remove('hidden');
+    return;
+  }
+  if (vehiclesEmpty) vehiclesEmpty.classList.add('hidden');
+  ids.sort().forEach((vehicleId) => {
+    const state = vehicleStateById[vehicleId];
+    const inZone = state?.inAnyZone ?? false;
+    const li = document.createElement('li');
+    li.className = 'vehicle-item';
+    li.innerHTML = `
+      <span class="vehicle-dot vehicle-dot--${inZone ? 'green' : 'red'}"></span>
+      <span class="vehicle-id">${escapeHtml(vehicleId)}</span>
+      <span class="vehicle-status">${inZone ? 'In zone' : 'Out of zone'}</span>
+    `;
+    vehiclesList.appendChild(li);
+  });
 }
 
 function addAlertItem(text, vehicleId = null) {
@@ -102,6 +146,7 @@ function createMap() {
 
   zoneLayer = new VectorLayer({
     source: new VectorSource(),
+    style: createZoneStyle(),
   });
 
   map = new Map({
@@ -135,6 +180,22 @@ function createVehicleStyle({ inAnyZone }) {
       radius: 6,
       fill: new Fill({ color: fillColor }),
       stroke: new Stroke({ color: '#0f172a', width: 1 }),
+    }),
+  });
+}
+
+function createZoneStyle() {
+  const Style = ol.style.Style;
+  const Fill = ol.style.Fill;
+  const Stroke = ol.style.Stroke;
+
+  return new Style({
+    fill: new Fill({
+      color: 'rgba(45, 212, 191, 0.15)',
+    }),
+    stroke: new Stroke({
+      color: 'rgba(45, 212, 191, 0.6)',
+      width: 2,
     }),
   });
 }
@@ -254,7 +315,16 @@ function connectWebSocket() {
       }
 
       if (data.type === 'vehicle_update' && data.payload) {
-        upsertVehicleFeature(data.payload);
+        const p = data.payload;
+        vehicleStateById[p.vehicleId] = {
+          inAnyZone: p.inAnyZone,
+          latitude: p.latitude,
+          longitude: p.longitude,
+          status: p.status,
+        };
+        updateVehicleStats();
+        updateVehiclesList();
+        upsertVehicleFeature(p);
         return;
       }
 
@@ -286,7 +356,9 @@ function connectWebSocket() {
 function startDashboard() {
   createMap();
   loadZones(); // safe even if DB is not yet ready
-  updateAlertsUI(); // init count + empty state
+  updateAlertsUI();
+  updateVehicleStats();
+  updateVehiclesList();
   connectWebSocket();
 }
 
@@ -329,6 +401,7 @@ function handleLoginSubmit(event) {
 }
 
 function logout() {
+  Object.keys(vehicleStateById).forEach((k) => delete vehicleStateById[k]);
   if (loginOverlay) loginOverlay.classList.remove('hidden');
   if (loginUsernameInput) loginUsernameInput.value = '';
   if (loginPasswordInput) loginPasswordInput.value = '';

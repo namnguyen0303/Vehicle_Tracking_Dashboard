@@ -71,12 +71,33 @@
           </div>
         </section>
         <section class="side-panel">
-          <div class="side-panel-header">
-            <h2>Live Alerts</h2>
-            <span id="alerts-count" class="alerts-count">0</span>
+          <div class="stats-bar">
+            <div class="stat-item">
+              <span id="stat-vehicles" class="stat-value">0</span>
+              <span class="stat-label">Vehicles</span>
+            </div>
+            <div class="stat-item stat-item--green">
+              <span id="stat-in-zone" class="stat-value">0</span>
+              <span class="stat-label">In zone</span>
+            </div>
+            <div class="stat-item stat-item--red">
+              <span id="stat-out-zone" class="stat-value">0</span>
+              <span class="stat-label">Out of zone</span>
+            </div>
           </div>
-          <ul id="alerts-list"></ul>
-          <div id="alerts-empty" class="alerts-empty">No alerts yet</div>
+          <div class="panel-section">
+            <h2 class="panel-section-title">Fleet</h2>
+            <ul id="vehicles-list" class="vehicles-list"></ul>
+            <div id="vehicles-empty" class="panel-empty">Waiting for vehicle data…</div>
+          </div>
+          <div class="panel-section panel-section--alerts">
+            <div class="panel-section-header">
+              <h2 class="panel-section-title">Live Alerts</h2>
+              <span id="alerts-count" class="alerts-count">0</span>
+            </div>
+            <ul id="alerts-list"></ul>
+            <div id="alerts-empty" class="panel-empty">No alerts yet</div>
+          </div>
         </section>
       </main>
       <footer class="app-footer">
