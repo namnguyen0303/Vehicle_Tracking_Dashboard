@@ -86,6 +86,9 @@ async function fetchFromSamsara() {
   }
 }
 
+// Track which vehicles were in a zone last tick (alert only on transition out)
+const lastInZone = new Map();
+
 async function tick({ broadcast }) {
   const vehicles = await fetchFromSamsara();
   if (!vehicles || vehicles.length === 0) return;
@@ -136,6 +139,8 @@ async function tick({ broadcast }) {
       }
 
       const inAnyZone = containingZones.length > 0;
+      const wasInZone = lastInZone.get(v.vehicleId) ?? false;
+      lastInZone.set(v.vehicleId, inAnyZone);
 
       if (broadcast) {
         broadcast({
@@ -155,13 +160,14 @@ async function tick({ broadcast }) {
         });
       }
 
-      if (!inAnyZone) {
+      // Only alert when vehicle just left a zone (transition in -> out)
+      if (wasInZone && !inAnyZone) {
         try {
           const alert = await alertModel.createAlert({
             vehicleId: v.vehicleId,
             zoneId: null,
             alertType: 'left_authorized_zone',
-            message: `Vehicle ${v.vehicleId} is outside all authorized zones`,
+            message: `Vehicle ${v.vehicleId} left the authorized zone`,
             latitude: v.latitude,
             longitude: v.longitude,
             createdAt: now,
