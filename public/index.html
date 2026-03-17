@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <title>Hollywood Microtransit Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0ea5e9" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/site.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -64,7 +67,17 @@
               <span class="status-dot"></span>
               <span class="status-text">Connecting…</span>
             </div>
-            <button type="button" id="logout-btn" class="logout-btn">
+            <button
+              type="button"
+              id="logout-btn"
+              class="btn btn--ghost btn--sm"
+            >
+              <img
+                class="icon"
+                src="/icon-logout.svg"
+                alt=""
+                aria-hidden="true"
+              />
               Log out
             </button>
           </div>
@@ -99,22 +112,119 @@
               <span class="stat-label">Out of zone</span>
             </div>
           </div>
-          <div class="panel-section">
-            <h2 class="panel-section-title">Fleet</h2>
-            <ul id="vehicles-list" class="vehicles-list"></ul>
-            <div id="vehicles-empty" class="panel-empty">
-              Waiting for vehicle data…
+          <details class="collapsible" open>
+            <summary class="collapsible-summary">
+              <span class="collapsible-title">
+                <img
+                  class="icon"
+                  src="/icon-fleet.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+                Fleet
+              </span>
+              <img
+                class="icon collapsible-chevron"
+                src="/icon-chevron.svg"
+                alt=""
+                aria-hidden="true"
+              />
+            </summary>
+            <div class="collapsible-body">
+              <ul id="vehicles-list" class="vehicles-list"></ul>
+              <div id="vehicles-empty" class="panel-empty">
+                Waiting for vehicle data…
+              </div>
             </div>
-          </div>
-          <div class="panel-section panel-section--alerts">
-            <div class="panel-section-header">
-              <h2 class="panel-section-title">Live Alerts</h2>
+          </details>
+
+          <details class="collapsible collapsible--alerts" open>
+            <summary class="collapsible-summary">
+              <span class="collapsible-title">
+                <img
+                  class="icon"
+                  src="/icon-alert.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+                Live Alerts
+              </span>
               <span id="alerts-count" class="alerts-count">0</span>
+              <img
+                class="icon collapsible-chevron"
+                src="/icon-chevron.svg"
+                alt=""
+                aria-hidden="true"
+              />
+            </summary>
+            <div class="collapsible-body">
+              <ul id="alerts-list"></ul>
+              <div id="alerts-empty" class="panel-empty">No alerts yet</div>
             </div>
-            <ul id="alerts-list"></ul>
-            <div id="alerts-empty" class="panel-empty">No alerts yet</div>
-          </div>
+          </details>
         </section>
+        <aside
+          id="vehicle-drawer"
+          class="drawer hidden"
+          aria-label="Vehicle details"
+        >
+          <div class="drawer-header">
+            <div class="drawer-title">
+              <span class="drawer-kicker">Vehicle</span>
+              <h2 id="drawer-vehicle-id" class="drawer-vehicle-id">—</h2>
+            </div>
+            <button
+              type="button"
+              id="drawer-close"
+              class="icon-btn"
+              aria-label="Close vehicle details"
+            >
+              <img
+                class="icon"
+                src="/icon-close.svg"
+                alt=""
+                aria-hidden="true"
+              />
+            </button>
+          </div>
+
+          <div class="drawer-body">
+            <div class="drawer-badges">
+              <span id="drawer-zone-badge" class="pill">—</span>
+              <span id="drawer-status-badge" class="pill pill--muted">—</span>
+            </div>
+
+            <dl class="kv">
+              <div class="kv-row">
+                <dt>Last update</dt>
+                <dd id="drawer-last-update">—</dd>
+              </div>
+              <div class="kv-row">
+                <dt>Latitude</dt>
+                <dd id="drawer-lat">—</dd>
+              </div>
+              <div class="kv-row">
+                <dt>Longitude</dt>
+                <dd id="drawer-lon">—</dd>
+              </div>
+            </dl>
+
+            <div class="drawer-actions">
+              <button type="button" id="drawer-zoom" class="btn">
+                <img
+                  class="icon"
+                  src="/icon-locate.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+                Zoom to vehicle
+              </button>
+              <button type="button" id="drawer-clear" class="btn btn--ghost">
+                Clear selection
+              </button>
+            </div>
+          </div>
+        </aside>
       </main>
       <footer class="app-footer">
         <span>City of Hollywood • Microtransit Monitoring</span>

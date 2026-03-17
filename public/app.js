@@ -23,9 +23,110 @@ const loginUsernameInput = document.getElementById('login-username');
 const loginPasswordInput = document.getElementById('login-password');
 const loginError = document.getElementById('login-error');
 
+// Vehicle details drawer
+const vehicleDrawer = document.getElementById('vehicle-drawer');
+const drawerCloseBtn = document.getElementById('drawer-close');
+const drawerClearBtn = document.getElementById('drawer-clear');
+const drawerZoomBtn = document.getElementById('drawer-zoom');
+const drawerVehicleId = document.getElementById('drawer-vehicle-id');
+const drawerZoneBadge = document.getElementById('drawer-zone-badge');
+const drawerStatusBadge = document.getElementById('drawer-status-badge');
+const drawerLastUpdate = document.getElementById('drawer-last-update');
+const drawerLat = document.getElementById('drawer-lat');
+const drawerLon = document.getElementById('drawer-lon');
+
+let selectedVehicleId = null;
+
 // --- Alert list helpers ----------------------------------------------------
 
 const MAX_ALERTS_DISPLAYED = 50;
+
+function formatTimeAgo(ms) {
+  if (!ms) return '—';
+  const diffSec = Math.max(0, Math.round((Date.now() - ms) / 1000));
+  if (diffSec < 5) return 'Just now';
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.round(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.round(diffMin / 60);
+  return `${diffHr}h ago`;
+}
+
+function formatCoord(v) {
+  if (typeof v !== 'number' || Number.isNaN(v)) return '—';
+  return v.toFixed(6);
+}
+
+function openVehicleDrawer(vehicleId) {
+  selectedVehicleId = vehicleId;
+  if (vehicleDrawer) vehicleDrawer.classList.remove('hidden');
+  updateSelectedVehicleUI();
+  updateVehicleDrawerUI();
+  refreshSelectedVehicleStyles();
+}
+
+function closeVehicleDrawer() {
+  if (vehicleDrawer) vehicleDrawer.classList.add('hidden');
+}
+
+function clearVehicleSelection() {
+  selectedVehicleId = null;
+  closeVehicleDrawer();
+  updateSelectedVehicleUI();
+  refreshSelectedVehicleStyles();
+}
+
+function updateVehicleDrawerUI() {
+  if (!selectedVehicleId) return;
+
+  const state = vehicleStateById[selectedVehicleId];
+  if (!state) return;
+
+  if (drawerVehicleId) drawerVehicleId.textContent = selectedVehicleId;
+
+  const inZone = state?.inAnyZone ?? false;
+  if (drawerZoneBadge) {
+    drawerZoneBadge.className = `pill ${inZone ? 'pill--green' : 'pill--red'}`;
+    drawerZoneBadge.textContent = inZone ? 'Inside zone' : 'Outside zone';
+  }
+
+  if (drawerStatusBadge) {
+    drawerStatusBadge.className = 'pill pill--muted';
+    drawerStatusBadge.textContent = state?.status ? String(state.status) : '—';
+  }
+
+  if (drawerLastUpdate) drawerLastUpdate.textContent = formatTimeAgo(state?.lastUpdatedAt);
+  if (drawerLat) drawerLat.textContent = formatCoord(state?.latitude);
+  if (drawerLon) drawerLon.textContent = formatCoord(state?.longitude);
+}
+
+function updateSelectedVehicleUI() {
+  if (!vehiclesList) return;
+  const items = vehiclesList.querySelectorAll('.vehicle-item');
+  items.forEach((el) => {
+    const id = el.getAttribute('data-vehicle-id');
+    el.classList.toggle('is-selected', !!selectedVehicleId && id === selectedVehicleId);
+  });
+}
+
+function refreshSelectedVehicleStyles() {
+  if (!selectedVehicleId) {
+    Object.keys(vehicleFeaturesById).forEach((id) => {
+      const feature = vehicleFeaturesById[id];
+      const state = vehicleStateById[id];
+      if (!feature || !state) return;
+      feature.setStyle(createVehicleStyle({ inAnyZone: !!state.inAnyZone, selected: false }));
+    });
+    return;
+  }
+
+  Object.keys(vehicleFeaturesById).forEach((id) => {
+    const feature = vehicleFeaturesById[id];
+    const state = vehicleStateById[id];
+    if (!feature || !state) return;
+    feature.setStyle(createVehicleStyle({ inAnyZone: !!state.inAnyZone, selected: id === selectedVehicleId }));
+  });
+}
 
 function setConnectionStatus(connected, reconnecting = false) {
   if (!connectionStatus) return;
@@ -63,11 +164,14 @@ function updateVehiclesList() {
     return;
   }
   if (vehiclesEmpty) vehiclesEmpty.classList.add('hidden');
+
   ids.sort().forEach((vehicleId) => {
     const state = vehicleStateById[vehicleId];
     const inZone = state?.inAnyZone ?? false;
     const li = document.createElement('li');
     li.className = 'vehicle-item';
+    li.setAttribute('data-vehicle-id', vehicleId);
+    li.classList.toggle('is-selected', !!selectedVehicleId && vehicleId === selectedVehicleId);
     li.innerHTML = `
       <span class="vehicle-dot vehicle-dot--${inZone ? 'green' : 'red'}"></span>
       <span class="vehicle-id">${escapeHtml(vehicleId)}</span>
@@ -159,6 +263,26 @@ function createMap() {
     }),
   });
 
+  map.on('singleclick', (evt) => {
+    const hit = map.forEachFeatureAtPixel(
+      evt.pixel,
+      (feature, layer) => {
+        if (layer !== vehicleLayer) return null;
+        const id = feature?.get?.('vehicleId');
+        return id ? { id } : null;
+      },
+      { hitTolerance: 6 }
+    );
+    if (hit?.id) {
+      const id = String(hit.id);
+      if (selectedVehicleId && id === selectedVehicleId) {
+        clearVehicleSelection();
+      } else {
+        openVehicleDrawer(id);
+      }
+    }
+  });
+
   // Ensure map dimensions match container (fixes split view when container resizes)
   requestAnimationFrame(() => {
     if (map && mapRoot) map.updateSize();
@@ -167,19 +291,76 @@ function createMap() {
 
 // --- Feature styling helpers ----------------------------------------------
 
-function createVehicleStyle({ inAnyZone }) {
+let vehicleStyleCache = null;
+
+function getVehicleStyleCache() {
+  if (vehicleStyleCache) return vehicleStyleCache;
+  if (!window.ol) return null;
+
+  const Style = ol.style.Style;
+  const Icon = ol.style.Icon;
+
+  vehicleStyleCache = {
+    inZone: new Style({
+      image: new Icon({
+        src: '/car-green.svg',
+        anchor: [0.5, 1],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+        scale: 0.62,
+      }),
+    }),
+    inZoneSelected: new Style({
+      image: new Icon({
+        src: '/car-green.svg',
+        anchor: [0.5, 1],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+        scale: 0.78,
+      }),
+    }),
+    outZone: new Style({
+      image: new Icon({
+        src: '/car-red.svg',
+        anchor: [0.5, 1],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+        scale: 0.62,
+      }),
+    }),
+    outZoneSelected: new Style({
+      image: new Icon({
+        src: '/car-red.svg',
+        anchor: [0.5, 1],
+        anchorXUnits: 'fraction',
+        anchorYUnits: 'fraction',
+        scale: 0.78,
+      }),
+    }),
+  };
+
+  return vehicleStyleCache;
+}
+
+function createVehicleStyle({ inAnyZone, selected = false }) {
+  const cache = getVehicleStyleCache();
+  if (cache) {
+    if (inAnyZone) return selected ? cache.inZoneSelected : cache.inZone;
+    return selected ? cache.outZoneSelected : cache.outZone;
+  }
+
+  // Fallback: render a dot if OpenLayers isn't ready for some reason.
   const Style = ol.style.Style;
   const Circle = ol.style.Circle;
   const Fill = ol.style.Fill;
   const Stroke = ol.style.Stroke;
-
-  const fillColor = inAnyZone ? 'rgba(16,185,129,0.92)' : 'rgba(244,63,94,0.92)';
+  const fillColor = inAnyZone ? 'rgba(22,163,74,0.9)' : 'rgba(225,29,72,0.9)';
 
   return new Style({
     image: new Circle({
       radius: 7,
       fill: new Fill({ color: fillColor }),
-      stroke: new Stroke({ color: 'rgba(12,15,20,0.9)', width: 1.5 }),
+      stroke: new Stroke({ color: 'rgba(255,255,255,0.95)', width: 1.5 }),
     }),
   });
 }
@@ -210,7 +391,7 @@ function createAlertStyle() {
     image: new Circle({
       radius: 6,
       fill: new Fill({ color: 'rgba(245,158,11,0.9)' }),
-      stroke: new Stroke({ color: 'rgba(12,15,20,0.9)', width: 1.5 }),
+      stroke: new Stroke({ color: 'rgba(255,255,255,0.95)', width: 1.5 }),
     }),
   });
 }
@@ -223,6 +404,7 @@ function upsertVehicleFeature(update) {
 
   const { vehicleId, latitude, longitude, inAnyZone } = update;
   const coords = ol.proj.fromLonLat([longitude, latitude]);
+  const isSelected = !!selectedVehicleId && vehicleId === selectedVehicleId;
 
   let feature = vehicleFeaturesById[vehicleId];
   if (!feature) {
@@ -230,12 +412,12 @@ function upsertVehicleFeature(update) {
       geometry: new Point(coords),
       vehicleId,
     });
-    feature.setStyle(createVehicleStyle({ inAnyZone }));
+    feature.setStyle(createVehicleStyle({ inAnyZone, selected: isSelected }));
     vehicleLayer.getSource().addFeature(feature);
     vehicleFeaturesById[vehicleId] = feature;
   } else {
     feature.getGeometry().setCoordinates(coords);
-    feature.setStyle(createVehicleStyle({ inAnyZone }));
+    feature.setStyle(createVehicleStyle({ inAnyZone, selected: isSelected }));
   }
 }
 
@@ -321,10 +503,12 @@ function connectWebSocket() {
           latitude: p.latitude,
           longitude: p.longitude,
           status: p.status,
+          lastUpdatedAt: Date.now(),
         };
         updateVehicleStats();
         updateVehiclesList();
         upsertVehicleFeature(p);
+        if (selectedVehicleId && p.vehicleId === selectedVehicleId) updateVehicleDrawerUI();
         return;
       }
 
@@ -402,6 +586,9 @@ function handleLoginSubmit(event) {
 
 function logout() {
   Object.keys(vehicleStateById).forEach((k) => delete vehicleStateById[k]);
+  Object.keys(vehicleFeaturesById).forEach((k) => delete vehicleFeaturesById[k]);
+  selectedVehicleId = null;
+  closeVehicleDrawer();
   if (loginOverlay) loginOverlay.classList.remove('hidden');
   if (loginUsernameInput) loginUsernameInput.value = '';
   if (loginPasswordInput) loginPasswordInput.value = '';
@@ -414,6 +601,33 @@ function bootstrap() {
   }
   if (logoutBtn) {
     logoutBtn.addEventListener('click', logout);
+  }
+
+  if (vehiclesList) {
+    vehiclesList.addEventListener('click', (e) => {
+      const li = e.target?.closest?.('.vehicle-item');
+      if (!li) return;
+      const id = li.getAttribute('data-vehicle-id');
+      if (!id) return;
+      const vehicleId = String(id);
+      if (selectedVehicleId && vehicleId === selectedVehicleId) {
+        clearVehicleSelection();
+      } else {
+        openVehicleDrawer(vehicleId);
+      }
+    });
+  }
+
+  if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeVehicleDrawer);
+  if (drawerClearBtn) drawerClearBtn.addEventListener('click', clearVehicleSelection);
+  if (drawerZoomBtn) {
+    drawerZoomBtn.addEventListener('click', () => {
+      if (!selectedVehicleId || !map) return;
+      const state = vehicleStateById[selectedVehicleId];
+      if (!state || typeof state.longitude !== 'number' || typeof state.latitude !== 'number') return;
+      const center = ol.proj.fromLonLat([state.longitude, state.latitude]);
+      map.getView().animate({ center, zoom: Math.max(map.getView().getZoom() ?? 13, 16), duration: 450 });
+    });
   }
 }
 

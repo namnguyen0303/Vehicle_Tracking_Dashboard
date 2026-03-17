@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="96" y1="64" x2="416" y2="448" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#0284c7"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#0f172a" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect x="64" y="64" width="384" height="384" rx="96" fill="url(#bg)"/>
+
+  <!-- Pin -->
+  <path filter="url(#shadow)" d="M256 126c-68.5 0-124 55.5-124 124 0 79.2 92.2 171.9 112.5 190.7a16 16 0 0 0 23 0C287.8 421.9 380 329.2 380 250c0-68.5-55.5-124-124-124Z" fill="rgba(255,255,255,0.18)"/>
+
+  <!-- Car glyph -->
+  <g transform="translate(172 222)">
+    <path d="M34 30c4-12 15-20 28-20h108c13 0 24 8 28 20l10 32c12 3 22 14 22 28v62c0 8-6 14-14 14h-14c-8 0-14-6-14-14v-14H72v14c0 8-6 14-14 14H44c-8 0-14-6-14-14V90c0-14 10-25 22-28l10-32Z" fill="#ffffff" opacity="0.98"/>
+    <path d="M60 42h116l8 26H52l8-26Z" fill="#0f172a" opacity="0.14"/>
+    <circle cx="78" cy="128" r="18" fill="#0f172a" opacity="0.26"/>
+    <circle cx="178" cy="128" r="18" fill="#0f172a" opacity="0.26"/>
+    <path d="M48 94h192" stroke="#0f172a" stroke-opacity="0.18" stroke-width="10" stroke-linecap="round"/>
+  </g>
+</svg>
