@@ -86,6 +86,16 @@
       <main class="app-main">
         <section class="map-panel">
           <div id="map-root"></div>
+          <div class="map-base-switcher" id="map-base-switcher" title="Map appearance">
+            <label class="map-base-switcher__mini-label" for="map-base-select">Map</label>
+            <div class="map-base-switcher__field">
+              <select id="map-base-select" class="map-base-switcher__select" aria-label="Map base layer">
+                <option value="street">Street</option>
+                <option value="satellite">Satellite</option>
+                <option value="terrain">Terrain</option>
+              </select>
+            </div>
+          </div>
           <div id="map-legend" class="map-legend">
             <span class="legend-item">
               <span class="legend-dot legend-dot--green"></span>
@@ -98,20 +108,6 @@
           </div>
         </section>
         <section class="side-panel">
-          <div class="stats-bar">
-            <div class="stat-item">
-              <span id="stat-vehicles" class="stat-value">0</span>
-              <span class="stat-label">Vehicles</span>
-            </div>
-            <div class="stat-item stat-item--green">
-              <span id="stat-in-zone" class="stat-value">0</span>
-              <span class="stat-label">In zone</span>
-            </div>
-            <div class="stat-item stat-item--red">
-              <span id="stat-out-zone" class="stat-value">0</span>
-              <span class="stat-label">Out of zone</span>
-            </div>
-          </div>
           <details class="collapsible" open>
             <summary class="collapsible-summary">
               <span class="collapsible-title">

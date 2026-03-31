@@ -507,19 +507,92 @@ body::before {
   min-height: 480px;
 }
 
+/* Compact base-map pill — top-right, stays out of the legend */
+.map-base-switcher {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.45rem 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(15, 23, 42, 0.07);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  backdrop-filter: blur(10px);
+}
+
+.map-base-switcher__mini-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  user-select: none;
+}
+
+.map-base-switcher__field {
+  position: relative;
+}
+
+.map-base-switcher__field::after {
+  content: "";
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  width: 0.28rem;
+  height: 0.28rem;
+  margin-top: -0.2rem;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.map-base-switcher__select {
+  appearance: none;
+  -webkit-appearance: none;
+  min-width: 4.75rem;
+  max-width: 6.5rem;
+  border: none;
+  border-radius: 999px;
+  padding: 0.18rem 1.35rem 0.18rem 0.35rem;
+  background: rgba(14, 165, 233, 0.08);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.map-base-switcher__select:hover {
+  background: rgba(14, 165, 233, 0.14);
+}
+
+.map-base-switcher__select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
 .map-legend {
   position: absolute;
   bottom: 1rem;
   left: 1rem;
+  z-index: 5;
   display: flex;
-  gap: 1.25rem;
-  padding: 0.5rem 1rem;
+  gap: 1rem;
+  padding: 0.4rem 0.75rem;
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid var(--border-subtle);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--text-primary);
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm);
 }
 
 .legend-item {
@@ -639,54 +712,6 @@ details:not([open]) .collapsible-chevron {
   min-height: 1.2em;
   font-size: 0.8125rem;
   color: var(--text-muted);
-}
-
-/* Stats bar */
-.stats-bar {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-}
-
-.stat-item {
-  padding: 0.75rem 0.5rem;
-  border-radius: var(--radius);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  text-align: center;
-  transition:
-    border-color 0.2s,
-    background 0.2s;
-}
-
-.stat-item:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-strong);
-}
-
-.stat-item--green .stat-value {
-  color: var(--green);
-}
-
-.stat-item--red .stat-value {
-  color: var(--red);
-}
-
-.stat-value {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-.stat-label {
-  display: block;
-  font-size: 0.6875rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 0.2rem;
 }
 
 /* Panel sections */

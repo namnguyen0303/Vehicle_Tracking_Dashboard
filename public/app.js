@@ -8,12 +8,9 @@ const alertsCount = document.getElementById('alerts-count');
 const alertsEmpty = document.getElementById('alerts-empty');
 const vehiclesList = document.getElementById('vehicles-list');
 const vehiclesEmpty = document.getElementById('vehicles-empty');
-const statVehicles = document.getElementById('stat-vehicles');
-const statInZone = document.getElementById('stat-in-zone');
-const statOutZone = document.getElementById('stat-out-zone');
 const connectionStatus = document.getElementById('connection-status');
 
-// Track vehicle state for stats and fleet list
+// Track vehicle state for fleet list and map
 const vehicleStateById = {};
 const mapRoot = document.getElementById('map-root');
 const loginOverlay = document.getElementById('login-overlay');
@@ -41,8 +38,11 @@ const breadcrumbDateInput = document.getElementById('breadcrumb-date');
 const breadcrumbShowBtn = document.getElementById('breadcrumb-show');
 const breadcrumbClearBtn = document.getElementById('breadcrumb-clear');
 const breadcrumbStatus = document.getElementById('breadcrumb-status');
+const mapBaseSelect = document.getElementById('map-base-select');
 
 let selectedVehicleId = null;
+
+const baseLayers = { street: null, satellite: null, terrain: null };
 
 // --- Alert list helpers ----------------------------------------------------
 
@@ -149,19 +149,6 @@ function updateAlertsUI() {
   if (alertsEmpty) alertsEmpty.classList.toggle('hidden', count > 0);
 }
 
-function updateVehicleStats() {
-  const ids = Object.keys(vehicleStateById);
-  const total = ids.length;
-  let inZone = 0;
-  ids.forEach((id) => {
-    if (vehicleStateById[id]?.inAnyZone) inZone++;
-  });
-  const outZone = total - inZone;
-  if (statVehicles) statVehicles.textContent = total;
-  if (statInZone) statInZone.textContent = inZone;
-  if (statOutZone) statOutZone.textContent = outZone;
-}
-
 function updateVehiclesList() {
   if (!vehiclesList) return;
   const ids = Object.keys(vehicleStateById);
@@ -266,12 +253,30 @@ function createMap() {
   const VectorLayer = ol.layer.Vector;
   const VectorSource = ol.source.Vector;
 
-  // Base map (OpenStreetMap tiles)
-  const baseLayer = new TileLayer({
+  // Base maps (only one visible; toggled via #map-base-select)
+  baseLayers.street = new TileLayer({
     source: new XYZ({
       url: 'https://{a-c}.tile.openstreetmap.org/{z}/{x}/{y}.png',
       maxZoom: 19,
+      attributions: '© OpenStreetMap contributors',
     }),
+    visible: true,
+  });
+  baseLayers.satellite = new TileLayer({
+    source: new XYZ({
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      maxZoom: 19,
+      attributions: 'Tiles © Esri',
+    }),
+    visible: false,
+  });
+  baseLayers.terrain = new TileLayer({
+    source: new XYZ({
+      url: 'https://tile.opentopomap.org/{z}/{x}/{y}.png',
+      maxZoom: 17,
+      attributions: '© OpenStreetMap contributors, © OpenTopoMap',
+    }),
+    visible: false,
   });
 
   vehicleLayer = new VectorLayer({
@@ -294,7 +299,15 @@ function createMap() {
 
   map = new Map({
     target: mapRoot,
-    layers: [baseLayer, zoneLayer, breadcrumbLayer, vehicleLayer, alertLayer],
+    layers: [
+      baseLayers.street,
+      baseLayers.satellite,
+      baseLayers.terrain,
+      zoneLayer,
+      breadcrumbLayer,
+      vehicleLayer,
+      alertLayer,
+    ],
     view: new View({
       // Center around Hollywood, FL in Web Mercator
       center: ol.proj.fromLonLat([-80.13, 26.01]),
@@ -326,6 +339,22 @@ function createMap() {
   requestAnimationFrame(() => {
     if (map && mapRoot) map.updateSize();
   });
+
+  syncBaseLayerFromSelect();
+}
+
+function setActiveBaseLayer(mode) {
+  const keys = ['street', 'satellite', 'terrain'];
+  if (!keys.includes(mode)) return;
+  keys.forEach((k) => {
+    if (baseLayers[k]) baseLayers[k].setVisible(k === mode);
+  });
+  if (mapBaseSelect && mapBaseSelect.value !== mode) mapBaseSelect.value = mode;
+}
+
+function syncBaseLayerFromSelect() {
+  if (!mapBaseSelect) return;
+  setActiveBaseLayer(mapBaseSelect.value || 'street');
 }
 
 // --- Feature styling helpers ----------------------------------------------
@@ -644,7 +673,6 @@ function connectWebSocket() {
           status: p.status,
           lastUpdatedAt: Date.now(),
         };
-        updateVehicleStats();
         updateVehiclesList();
         updateBreadcrumbVehicleOptions();
         upsertVehicleFeature(p);
@@ -681,7 +709,6 @@ function startDashboard() {
   createMap();
   loadZones(); // safe even if DB is not yet ready
   updateAlertsUI();
-  updateVehicleStats();
   updateVehiclesList();
   updateBreadcrumbVehicleOptions();
   connectWebSocket();
@@ -782,6 +809,12 @@ function bootstrap() {
   }
   if (breadcrumbShowBtn) breadcrumbShowBtn.addEventListener('click', showBreadcrumbTrail);
   if (breadcrumbClearBtn) breadcrumbClearBtn.addEventListener('click', clearBreadcrumbTrail);
+
+  if (mapBaseSelect) {
+    mapBaseSelect.addEventListener('change', () => {
+      setActiveBaseLayer(mapBaseSelect.value || 'street');
+    });
+  }
 }
 
 window.addEventListener('load', bootstrap);

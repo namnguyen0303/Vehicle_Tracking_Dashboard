@@ -68,6 +68,7 @@ npm start
 
 - **URL:** http://localhost:3000
 - **Login:** `staff` / `password` (placeholder credentials)
+- **Map:** small **Map** control (top-right) switches Street (OpenStreetMap), Satellite (Esri World Imagery), or Terrain (OpenTopoMap). Legend stays bottom-left.
 
 ## Project Structure
 
@@ -81,7 +82,7 @@ Hollywood-app/
 │   ├── config/       # Env and DB config
 │   ├── models/       # Vehicle, zone, alert models
 │   ├── routes/       # REST API routes
-│   ├── services/     # RideCircuit poller (simulated)
+│   ├── services/     # Samsara vehicle poller
 │   ├── ws/           # WebSocket server
 │   └── server.js     # Entry point
 ├── sql/

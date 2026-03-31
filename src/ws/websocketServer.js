@@ -30,7 +30,7 @@ function createWebSocketServer(httpServer) {
     ws.send(
       JSON.stringify({
         type: 'welcome',
-        message: 'Connected to Hollywood microtransit WebSocket server',
+        message: 'Connected to the server.',
       })
     );
   });
