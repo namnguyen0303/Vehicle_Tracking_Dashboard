@@ -97,6 +97,7 @@ Hollywood-app/
 | ------ | --------------- | ----------------------------------- |
 | POST   | `/api/login`    | Staff login                         |
 | GET    | `/api/vehicles` | List vehicles with latest positions |
+| GET    | `/api/vehicles/:vehicleId/history?date=YYYY-MM-DD&tz=America/New_York` | Breadcrumb history for one vehicle/day |
 | GET    | `/api/zones`    | List authorized zones               |
 | GET    | `/api/alerts`   | List recent alerts                  |
 | GET    | `/health`       | Health check                        |
@@ -117,6 +118,24 @@ psql -d hollywood_microtransit -f sql/schema.sql
 ```
 
 4. Set `DISABLE_DB=false` in `.env`
+
+## Breadcrumb history
+
+- The server stores vehicle position history in `vehicle_positions` when the database is enabled.
+- The dashboard provides a **Vehicle + Day** control to render a breadcrumb trail for that day.
+- Retention: the server periodically deletes history rows older than **30 days**.
+
+### API example
+
+```bash
+curl "http://localhost:3000/api/vehicles/VEHICLE_123/history?date=2026-03-30&tz=America/New_York"
+```
+
+### Screenshot evidence checklist (for reports)
+
+- Breadcrumb controls visible in the side panel (Vehicle + Day).
+- A breadcrumb line displayed on the map for a selected vehicle/day.
+- Optional: console/network panel showing the `GET /api/vehicles/:vehicleId/history` request.
 
 ## Roadmap
 

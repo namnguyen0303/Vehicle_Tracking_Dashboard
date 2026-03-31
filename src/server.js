@@ -5,6 +5,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+const env = require('./config/env');
+const db = require('./config/db');
 const { createWebSocketServer } = require('./ws/websocketServer');
 const { startVehiclePoller } = require('./services/vehiclePoller');
 
@@ -34,6 +36,28 @@ const server = http.createServer(app);
 const { broadcast } = createWebSocketServer(server);
 
 startVehiclePoller({ broadcast });
+
+async function cleanupOldVehiclePositions() {
+  if (env.disableDb) return;
+  try {
+    const result = await db.query(
+      `DELETE FROM vehicle_positions WHERE recorded_at < NOW() - INTERVAL '30 days';`
+    );
+    if (result?.rowCount != null) {
+      console.log(`Vehicle history retention: deleted ${result.rowCount} rows older than 30 days`);
+    }
+  } catch (err) {
+    console.warn('Vehicle history retention cleanup failed:', err.message);
+  }
+}
+
+// Run once shortly after start, then daily.
+setTimeout(() => {
+  cleanupOldVehiclePositions().catch(() => {});
+}, 5000);
+setInterval(() => {
+  cleanupOldVehiclePositions().catch(() => {});
+}, 24 * 60 * 60 * 1000);
 
 const PORT = process.env.PORT || 3000;
 

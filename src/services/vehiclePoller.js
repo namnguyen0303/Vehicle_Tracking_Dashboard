@@ -1,5 +1,6 @@
 const env = require('../config/env');
 const vehicleModel = require('../models/vehicle');
+const vehiclePositionModel = require('../models/vehiclePosition');
 const zoneModel = require('../models/zone');
 const alertModel = require('../models/alert');
 
@@ -130,6 +131,19 @@ async function tick({ broadcast }) {
         headingDeg: v.headingDeg,
         lastSeenAt: now,
       });
+
+      try {
+        await vehiclePositionModel.insertPosition({
+          vehicleId: savedVehicle.vehicle_id,
+          latitude: v.latitude,
+          longitude: v.longitude,
+          speedKph: v.speedKph,
+          headingDeg: v.headingDeg,
+          recordedAt: now,
+        });
+      } catch (historyErr) {
+        console.warn('Failed to insert vehicle history point:', historyErr.message);
+      }
 
       let containingZones = [];
       try {

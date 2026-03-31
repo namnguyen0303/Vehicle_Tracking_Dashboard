@@ -60,3 +60,23 @@ CREATE INDEX IF NOT EXISTS idx_alerts_vehicle_id
 CREATE INDEX IF NOT EXISTS idx_alerts_created_at
   ON alerts (created_at DESC);
 
+-- Vehicle position history ("breadcrumbs"): stores time-series positions for playback
+-- Retention target: keep at least the most recent 30 days (cleanup handled by app/ops).
+CREATE TABLE IF NOT EXISTS vehicle_positions (
+  id              BIGSERIAL PRIMARY KEY,
+  vehicle_id      TEXT NOT NULL,
+  recorded_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  -- Geographic point in WGS 84 (lat/lon)
+  position        geometry(Point, 4326),
+  speed_kph       NUMERIC,
+  heading_deg     NUMERIC
+);
+
+-- Fast per-vehicle range scans (e.g., "positions for a day")
+CREATE INDEX IF NOT EXISTS idx_vehicle_positions_vehicle_time
+  ON vehicle_positions (vehicle_id, recorded_at DESC);
+
+-- Useful for retention cleanup
+CREATE INDEX IF NOT EXISTS idx_vehicle_positions_recorded_at
+  ON vehicle_positions (recorded_at DESC);
+

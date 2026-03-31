@@ -35,6 +35,13 @@ const drawerLastUpdate = document.getElementById('drawer-last-update');
 const drawerLat = document.getElementById('drawer-lat');
 const drawerLon = document.getElementById('drawer-lon');
 
+// Breadcrumb history controls
+const breadcrumbVehicleSelect = document.getElementById('breadcrumb-vehicle');
+const breadcrumbDateInput = document.getElementById('breadcrumb-date');
+const breadcrumbShowBtn = document.getElementById('breadcrumb-show');
+const breadcrumbClearBtn = document.getElementById('breadcrumb-clear');
+const breadcrumbStatus = document.getElementById('breadcrumb-status');
+
 let selectedVehicleId = null;
 
 // --- Alert list helpers ----------------------------------------------------
@@ -208,9 +215,36 @@ let map;
 let vehicleLayer;
 let alertLayer;
 let zoneLayer;
+let breadcrumbLayer;
 
 // Stores current vehicle features by vehicleId for easy updates
 const vehicleFeaturesById = {};
+let breadcrumbFeature = null;
+
+function getDefaultTimezone() {
+  return Intl?.DateTimeFormat?.().resolvedOptions?.().timeZone || 'America/New_York';
+}
+
+function setBreadcrumbStatus(text) {
+  if (!breadcrumbStatus) return;
+  breadcrumbStatus.textContent = text || '';
+}
+
+function updateBreadcrumbVehicleOptions() {
+  if (!breadcrumbVehicleSelect) return;
+  const ids = Object.keys(vehicleStateById).sort();
+  const current = breadcrumbVehicleSelect.value;
+
+  breadcrumbVehicleSelect.innerHTML = '<option value="">Select a vehicle…</option>';
+  ids.forEach((id) => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = id;
+    breadcrumbVehicleSelect.appendChild(opt);
+  });
+
+  if (current && ids.includes(current)) breadcrumbVehicleSelect.value = current;
+}
 
 function createMap() {
   if (!mapRoot || !window.ol) {
@@ -253,9 +287,14 @@ function createMap() {
     style: createZoneStyle(),
   });
 
+  breadcrumbLayer = new VectorLayer({
+    source: new VectorSource(),
+    style: createBreadcrumbStyle(),
+  });
+
   map = new Map({
     target: mapRoot,
-    layers: [baseLayer, zoneLayer, vehicleLayer, alertLayer],
+    layers: [baseLayer, zoneLayer, breadcrumbLayer, vehicleLayer, alertLayer],
     view: new View({
       // Center around Hollywood, FL in Web Mercator
       center: ol.proj.fromLonLat([-80.13, 26.01]),
@@ -372,11 +411,11 @@ function createZoneStyle() {
 
   return new Style({
     fill: new Fill({
-      color: 'rgba(20, 184, 166, 0.12)',
+      color: 'rgba(5, 120, 105, 0.28)',
     }),
     stroke: new Stroke({
-      color: 'rgba(20, 184, 166, 0.5)',
-      width: 2,
+      color: 'rgba(4, 94, 82, 0.9)',
+      width: 2.5,
     }),
   });
 }
@@ -394,6 +433,27 @@ function createAlertStyle() {
       stroke: new Stroke({ color: 'rgba(255,255,255,0.95)', width: 1.5 }),
     }),
   });
+}
+
+function createBreadcrumbStyle() {
+  const Style = ol.style.Style;
+  const Stroke = ol.style.Stroke;
+
+  // Two-stroke style: a light "halo" for contrast + a bold colored line on top.
+  return [
+    new Style({
+      stroke: new Stroke({
+        color: 'rgba(255, 255, 255, 0.95)',
+        width: 8,
+      }),
+    }),
+    new Style({
+      stroke: new Stroke({
+        color: 'rgba(14, 165, 233, 0.98)',
+        width: 4.5,
+      }),
+    }),
+  ];
 }
 
 // --- Vehicle and alert feature management ----------------------------------
@@ -433,6 +493,85 @@ function addAlertFeature(alert) {
   });
   feature.setStyle(createAlertStyle());
   alertLayer.getSource().addFeature(feature);
+}
+
+function clearBreadcrumbTrail() {
+  if (!breadcrumbLayer) return;
+  breadcrumbLayer.getSource().clear();
+  breadcrumbFeature = null;
+  setBreadcrumbStatus('');
+}
+
+async function showBreadcrumbTrail() {
+  if (!breadcrumbVehicleSelect || !breadcrumbDateInput) return;
+  if (!breadcrumbLayer) return;
+
+  const vehicleId = String(breadcrumbVehicleSelect.value || '').trim();
+  const date = String(breadcrumbDateInput.value || '').trim();
+  const tz = getDefaultTimezone();
+
+  if (!vehicleId) {
+    setBreadcrumbStatus('Select a vehicle first.');
+    return;
+  }
+  if (!date) {
+    setBreadcrumbStatus('Select a day first.');
+    return;
+  }
+
+  setBreadcrumbStatus('Loading history…');
+
+  try {
+    const url = `/api/vehicles/${encodeURIComponent(vehicleId)}/history?date=${encodeURIComponent(
+      date
+    )}&tz=${encodeURIComponent(tz)}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Failed to load history');
+    }
+    const data = await res.json();
+    const points = Array.isArray(data?.points) ? data.points : [];
+
+    if (points.length < 2) {
+      clearBreadcrumbTrail();
+      setBreadcrumbStatus(`No trail data for ${vehicleId} on ${date}.`);
+      return;
+    }
+
+    const maxDrawPoints = 5000;
+    const step = points.length > maxDrawPoints ? Math.ceil(points.length / maxDrawPoints) : 1;
+    const coords = [];
+    for (let i = 0; i < points.length; i += step) {
+      const p = points[i];
+      if (typeof p.longitude !== 'number' || typeof p.latitude !== 'number') continue;
+      coords.push(ol.proj.fromLonLat([p.longitude, p.latitude]));
+    }
+
+    if (coords.length < 2) {
+      clearBreadcrumbTrail();
+      setBreadcrumbStatus(`No usable GPS points for ${vehicleId} on ${date}.`);
+      return;
+    }
+
+    breadcrumbLayer.getSource().clear();
+    const Feature = ol.Feature;
+    const LineString = ol.geom.LineString;
+    breadcrumbFeature = new Feature({
+      geometry: new LineString(coords),
+      vehicleId,
+      date,
+    });
+    breadcrumbLayer.getSource().addFeature(breadcrumbFeature);
+
+    const extent = breadcrumbFeature.getGeometry().getExtent();
+    map.getView().fit(extent, { padding: [60, 30, 60, 30], duration: 450, maxZoom: 17 });
+
+    setBreadcrumbStatus(`Showing ${vehicleId} trail for ${date}.`);
+  } catch (err) {
+    console.error('Breadcrumb history error', err);
+    setBreadcrumbStatus('Failed to load history. Check server logs and DB.');
+  }
 }
 
 async function loadZones() {
@@ -507,6 +646,7 @@ function connectWebSocket() {
         };
         updateVehicleStats();
         updateVehiclesList();
+        updateBreadcrumbVehicleOptions();
         upsertVehicleFeature(p);
         if (selectedVehicleId && p.vehicleId === selectedVehicleId) updateVehicleDrawerUI();
         return;
@@ -543,6 +683,7 @@ function startDashboard() {
   updateAlertsUI();
   updateVehicleStats();
   updateVehiclesList();
+  updateBreadcrumbVehicleOptions();
   connectWebSocket();
 }
 
@@ -589,6 +730,7 @@ function logout() {
   Object.keys(vehicleFeaturesById).forEach((k) => delete vehicleFeaturesById[k]);
   selectedVehicleId = null;
   closeVehicleDrawer();
+  clearBreadcrumbTrail();
   if (loginOverlay) loginOverlay.classList.remove('hidden');
   if (loginUsernameInput) loginUsernameInput.value = '';
   if (loginPasswordInput) loginPasswordInput.value = '';
@@ -629,6 +771,17 @@ function bootstrap() {
       map.getView().animate({ center, zoom: Math.max(map.getView().getZoom() ?? 13, 16), duration: 450 });
     });
   }
+
+  if (breadcrumbDateInput) {
+    // Default to today's date in the user's locale (YYYY-MM-DD)
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    breadcrumbDateInput.value = `${yyyy}-${mm}-${dd}`;
+  }
+  if (breadcrumbShowBtn) breadcrumbShowBtn.addEventListener('click', showBreadcrumbTrail);
+  if (breadcrumbClearBtn) breadcrumbClearBtn.addEventListener('click', clearBreadcrumbTrail);
 }
 
 window.addEventListener('load', bootstrap);
