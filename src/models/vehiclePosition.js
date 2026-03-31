@@ -10,13 +10,12 @@ async function insertPosition({
   vehicleId,
   latitude,
   longitude,
-  speedKph,
   headingDeg,
   recordedAt = new Date(),
 }) {
   const sql = `
-    INSERT INTO vehicle_positions (vehicle_id, recorded_at, position, speed_kph, heading_deg)
-    VALUES ($1, $2, ST_SetSRID(ST_MakePoint($3, $4), 4326), $5, $6)
+    INSERT INTO vehicle_positions (vehicle_id, recorded_at, position, heading_deg)
+    VALUES ($1, $2, ST_SetSRID(ST_MakePoint($3, $4), 4326), $5)
     RETURNING id;
   `;
 
@@ -25,7 +24,6 @@ async function insertPosition({
     recordedAt,
     longitude,
     latitude,
-    speedKph != null ? speedKph : null,
     headingDeg != null ? headingDeg : null,
   ];
 
@@ -45,7 +43,6 @@ async function listPositionsForDay({ vehicleId, date, tz = 'America/New_York' })
       recorded_at,
       ST_Y(position) AS latitude,
       ST_X(position) AS longitude,
-      speed_kph,
       heading_deg
     FROM vehicle_positions
     WHERE vehicle_id = $1

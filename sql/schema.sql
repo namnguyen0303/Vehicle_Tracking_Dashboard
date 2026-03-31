@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS vehicles (
   last_seen_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   -- Geographic point in WGS 84 (lat/lon)
   position        geometry(Point, 4326),
-  speed_kph       NUMERIC,
   heading_deg     NUMERIC
 );
 
@@ -68,7 +67,6 @@ CREATE TABLE IF NOT EXISTS vehicle_positions (
   recorded_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   -- Geographic point in WGS 84 (lat/lon)
   position        geometry(Point, 4326),
-  speed_kph       NUMERIC,
   heading_deg     NUMERIC
 );
 

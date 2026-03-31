@@ -98,7 +98,8 @@ Hollywood-app/
 | ------ | --------------- | ----------------------------------- |
 | POST   | `/api/login`    | Staff login                         |
 | GET    | `/api/vehicles` | List vehicles with latest positions |
-| GET    | `/api/vehicles/:vehicleId/history?date=YYYY-MM-DD&tz=America/New_York` | Breadcrumb history for one vehicle/day |
+| GET    | `/api/vehicles/:vehicleId/history?date=YYYY-MM-DD&tz=America/New_York` | Breadcrumb history (JSON) for one vehicle/day |
+| GET    | same + `&format=csv` | Same data as **CSV** download (Excel-friendly) |
 | GET    | `/api/zones`    | List authorized zones               |
 | GET    | `/api/alerts`   | List recent alerts                  |
 | GET    | `/health`       | Health check                        |
@@ -120,16 +121,23 @@ psql -d hollywood_microtransit -f sql/schema.sql
 
 4. Set `DISABLE_DB=false` in `.env`
 
+If you already created the database with an older schema that included `speed_kph`, run once:
+
+```bash
+psql -d hollywood_microtransit -f sql/migrate-remove-speed-kph.sql
+```
+
 ## Breadcrumb history
 
 - The server stores vehicle position history in `vehicle_positions` when the database is enabled.
-- The dashboard provides a **Vehicle + Day** control to render a breadcrumb trail for that day.
+- The dashboard provides a **Vehicle + Day** control to render a breadcrumb trail for that day, plus **Download CSV** for Excel.
 - Retention: the server periodically deletes history rows older than **30 days**.
 
 ### API example
 
 ```bash
 curl "http://localhost:3000/api/vehicles/VEHICLE_123/history?date=2026-03-30&tz=America/New_York"
+curl -o trail.csv "http://localhost:3000/api/vehicles/VEHICLE_123/history?date=2026-03-30&tz=America/New_York&format=csv"
 ```
 
 ### Screenshot evidence checklist (for reports)

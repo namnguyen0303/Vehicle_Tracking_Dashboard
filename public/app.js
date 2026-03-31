@@ -37,6 +37,7 @@ const breadcrumbVehicleSelect = document.getElementById('breadcrumb-vehicle');
 const breadcrumbDateInput = document.getElementById('breadcrumb-date');
 const breadcrumbShowBtn = document.getElementById('breadcrumb-show');
 const breadcrumbClearBtn = document.getElementById('breadcrumb-clear');
+const breadcrumbExportCsvBtn = document.getElementById('breadcrumb-export-csv');
 const breadcrumbStatus = document.getElementById('breadcrumb-status');
 const mapBaseSelect = document.getElementById('map-base-select');
 
@@ -603,6 +604,55 @@ async function showBreadcrumbTrail() {
   }
 }
 
+async function downloadBreadcrumbCsv() {
+  if (!breadcrumbVehicleSelect || !breadcrumbDateInput) return;
+
+  const vehicleId = String(breadcrumbVehicleSelect.value || '').trim();
+  const date = String(breadcrumbDateInput.value || '').trim();
+  const tz = getDefaultTimezone();
+
+  if (!vehicleId) {
+    setBreadcrumbStatus('Select a vehicle first.');
+    return;
+  }
+  if (!date) {
+    setBreadcrumbStatus('Select a day first.');
+    return;
+  }
+
+  const url = `/api/vehicles/${encodeURIComponent(vehicleId)}/history?date=${encodeURIComponent(
+    date
+  )}&tz=${encodeURIComponent(tz)}&format=csv`;
+  setBreadcrumbStatus('Preparing CSV…');
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Download failed');
+    }
+    const blob = await res.blob();
+    let filename = `breadcrumb-${vehicleId}-${date}.csv`.replace(/[/\\?%*:|"<>]/g, '_');
+    const dispo = res.headers.get('Content-Disposition');
+    if (dispo) {
+      const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)/i.exec(dispo);
+      if (m) filename = decodeURIComponent(m[1].trim());
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    setBreadcrumbStatus(`Downloaded ${filename}`);
+  } catch (err) {
+    console.error('Breadcrumb CSV export error', err);
+    setBreadcrumbStatus('CSV download failed. Is the database enabled?');
+  }
+}
+
 async function loadZones() {
   if (!zoneLayer) return;
 
@@ -808,6 +858,7 @@ function bootstrap() {
     breadcrumbDateInput.value = `${yyyy}-${mm}-${dd}`;
   }
   if (breadcrumbShowBtn) breadcrumbShowBtn.addEventListener('click', showBreadcrumbTrail);
+  if (breadcrumbExportCsvBtn) breadcrumbExportCsvBtn.addEventListener('click', downloadBreadcrumbCsv);
   if (breadcrumbClearBtn) breadcrumbClearBtn.addEventListener('click', clearBreadcrumbTrail);
 
   if (mapBaseSelect) {

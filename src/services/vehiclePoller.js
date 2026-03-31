@@ -15,7 +15,7 @@ const alertModel = require('../models/alert');
  * Fetch vehicle locations from Samsara API.
  * Uses /fleet/vehicles/stats?types=gps for GPS data (not /fleet/vehicles which has no locations).
  * Docs: https://developers.samsara.com/docs/vehicle-stats-feed
- * Returns array of { vehicleId, latitude, longitude, speedKph, headingDeg, ... } or null on error.
+ * Returns array of { vehicleId, latitude, longitude, headingDeg, ... } or null on error.
  */
 async function fetchFromSamsara() {
   const apiToken = (env.samsara.apiToken || '').trim();
@@ -69,7 +69,6 @@ async function fetchFromSamsara() {
     return withLocation.map((v) => {
       const loc = v.gps || v.location || {};
       const vehicleId = v.name || v.asset?.id || v.id || 'unknown';
-      const speedMph = loc.speedMph ?? loc.speed;
       const headingDeg = loc.headingDeg ?? loc.headingDegrees ?? 0;
       return {
         vehicleId: String(vehicleId),
@@ -77,7 +76,6 @@ async function fetchFromSamsara() {
         status: v.engineStates?.value || 'in_service',
         latitude: loc.latitude,
         longitude: loc.longitude,
-        speedKph: speedMph != null ? speedMph * 1.60934 : 0,
         headingDeg,
       };
     });
@@ -109,7 +107,6 @@ async function tick({ broadcast }) {
             status: v.status,
             latitude: v.latitude,
             longitude: v.longitude,
-            speedKph: v.speedKph ?? 0,
             headingDeg: v.headingDeg ?? 0,
             lastSeenAt: now,
             inAnyZone: true,
@@ -127,7 +124,6 @@ async function tick({ broadcast }) {
         status: v.status,
         latitude: v.latitude,
         longitude: v.longitude,
-        speedKph: v.speedKph,
         headingDeg: v.headingDeg,
         lastSeenAt: now,
       });
@@ -137,7 +133,6 @@ async function tick({ broadcast }) {
           vehicleId: savedVehicle.vehicle_id,
           latitude: v.latitude,
           longitude: v.longitude,
-          speedKph: v.speedKph,
           headingDeg: v.headingDeg,
           recordedAt: now,
         });
@@ -165,7 +160,6 @@ async function tick({ broadcast }) {
             status: savedVehicle.status,
             latitude: v.latitude,
             longitude: v.longitude,
-            speedKph: v.speedKph ?? 0,
             headingDeg: v.headingDeg ?? 0,
             lastSeenAt: savedVehicle.last_seen_at,
             inAnyZone,
