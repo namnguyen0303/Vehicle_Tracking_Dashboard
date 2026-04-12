@@ -23,7 +23,7 @@
   <body>
     <div id="login-overlay">
       <div class="login-card">
-        <h2>Staff Login</h2>
+        <h2>Login</h2>
         <p class="login-subtitle">Hollywood Microtransit Dashboard</p>
         <form id="login-form">
           <label class="login-label">
@@ -45,7 +45,6 @@
             />
           </label>
           <button type="submit" class="login-button">Sign in</button>
-          <p class="login-hint">Use staff / password for now.</p>
           <p id="login-error" class="login-error" aria-live="assertive"></p>
         </form>
       </div>
@@ -55,8 +54,7 @@
       <header class="app-header">
         <div class="app-header-row">
           <div class="app-header-brand">
-            <h1>Hollywood Microtransit</h1>
-            <span class="app-subtitle">Real-time monitoring dashboard</span>
+            <h1>Microtransit Monitoring Dashboard</h1>
           </div>
           <div class="app-header-actions">
             <div
@@ -86,10 +84,20 @@
       <main class="app-main">
         <section class="map-panel">
           <div id="map-root"></div>
-          <div class="map-base-switcher" id="map-base-switcher" title="Map appearance">
-            <label class="map-base-switcher__mini-label" for="map-base-select">Map</label>
+          <div
+            class="map-base-switcher"
+            id="map-base-switcher"
+            title="Map appearance"
+          >
+            <label class="map-base-switcher__mini-label" for="map-base-select"
+              >Map</label
+            >
             <div class="map-base-switcher__field">
-              <select id="map-base-select" class="map-base-switcher__select" aria-label="Map base layer">
+              <select
+                id="map-base-select"
+                class="map-base-switcher__select"
+                aria-label="Map base layer"
+              >
                 <option value="street">Street</option>
                 <option value="satellite">Satellite</option>
                 <option value="terrain">Terrain</option>
@@ -134,11 +142,16 @@
             </div>
           </details>
 
-          <details class="collapsible" open>
+          <details class="collapsible">
             <summary class="collapsible-summary">
               <span class="collapsible-title">
-                <img class="icon" src="/icon-locate.svg" alt="" aria-hidden="true" />
-                Breadcrumb history
+                <img
+                  class="icon"
+                  src="/icon-locate.svg"
+                  alt=""
+                  aria-hidden="true"
+                />
+                History
               </span>
               <img
                 class="icon collapsible-chevron"
@@ -157,13 +170,25 @@
                 </label>
                 <label class="history-label">
                   Day
-                  <input id="breadcrumb-date" class="history-date" type="date" />
+                  <input
+                    id="breadcrumb-date"
+                    class="history-date"
+                    type="date"
+                  />
                 </label>
                 <div class="history-actions">
-                  <button type="button" id="breadcrumb-show" class="btn btn--sm">
+                  <button
+                    type="button"
+                    id="breadcrumb-show"
+                    class="btn btn--sm"
+                  >
                     Show trail
                   </button>
-                  <button type="button" id="breadcrumb-export-csv" class="btn btn--ghost btn--sm">
+                  <button
+                    type="button"
+                    id="breadcrumb-export-csv"
+                    class="btn btn--ghost btn--sm"
+                  >
                     Download CSV
                   </button>
                   <button
@@ -174,12 +199,16 @@
                     Clear
                   </button>
                 </div>
-                <div id="breadcrumb-status" class="history-status" aria-live="polite"></div>
+                <div
+                  id="breadcrumb-status"
+                  class="history-status"
+                  aria-live="polite"
+                ></div>
               </div>
             </div>
           </details>
 
-          <details class="collapsible collapsible--alerts" open>
+          <details class="collapsible collapsible--alerts">
             <summary class="collapsible-summary">
               <span class="collapsible-title">
                 <img
@@ -188,7 +217,7 @@
                   alt=""
                   aria-hidden="true"
                 />
-                Live Alerts
+                Alerts
               </span>
               <span id="alerts-count" class="alerts-count">0</span>
               <img
@@ -233,6 +262,7 @@
             <div class="drawer-badges">
               <span id="drawer-zone-badge" class="pill">—</span>
               <span id="drawer-status-badge" class="pill pill--muted">—</span>
+              <span id="drawer-activity-badge" class="pill">—</span>
             </div>
 
             <dl class="kv">
@@ -269,7 +299,38 @@
       </main>
       <footer class="app-footer">
         <span>City of Hollywood • Microtransit Monitoring</span>
-        <span class="footer-tech">REST API → WebSocket → OpenLayers</span>
+        <div class="app-footer-end">
+          <details class="footer-hours">
+            <summary
+              class="footer-hours-summary"
+              aria-label="Service hours for Hollywood West and East"
+            >
+              <img
+                class="icon footer-hours-icon"
+                src="/icon-clock.svg"
+                alt=""
+                aria-hidden="true"
+              />
+              Hours
+              <img
+                class="icon footer-hours-chevron"
+                src="/icon-chevron.svg"
+                alt=""
+                aria-hidden="true"
+              />
+            </summary>
+            <div class="footer-hours-panel">
+              <div
+                id="service-hours-root"
+                class="service-hours"
+                aria-live="polite"
+                aria-busy="true"
+              >
+                <p class="service-hours-status">Loading schedule…</p>
+              </div>
+            </div>
+          </details>
+        </div>
       </footer>
     </div>
 

@@ -12,6 +12,13 @@ const connectionStatus = document.getElementById('connection-status');
 
 // Track vehicle state for fleet list and map
 const vehicleStateById = {};
+
+/** No meaningful movement for this long → shown as inactive (billing / ops). */
+const INACTIVITY_MS = 60 * 60 * 1000;
+/** Ignore GPS jitter under this distance when updating "last moved" time. */
+const MOVE_THRESHOLD_M = 25;
+
+let activityRefreshTimer = null;
 const mapRoot = document.getElementById('map-root');
 const loginOverlay = document.getElementById('login-overlay');
 const loginForm = document.getElementById('login-form');
@@ -28,6 +35,7 @@ const drawerZoomBtn = document.getElementById('drawer-zoom');
 const drawerVehicleId = document.getElementById('drawer-vehicle-id');
 const drawerZoneBadge = document.getElementById('drawer-zone-badge');
 const drawerStatusBadge = document.getElementById('drawer-status-badge');
+const drawerActivityBadge = document.getElementById('drawer-activity-badge');
 const drawerLastUpdate = document.getElementById('drawer-last-update');
 const drawerLat = document.getElementById('drawer-lat');
 const drawerLon = document.getElementById('drawer-lon');
@@ -63,6 +71,74 @@ function formatTimeAgo(ms) {
 function formatCoord(v) {
   if (typeof v !== 'number' || Number.isNaN(v)) return '—';
   return v.toFixed(6);
+}
+
+function haversineMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const φ1 = toRad(lat1);
+  const φ2 = toRad(lat2);
+  const Δφ = toRad(lat2 - lat1);
+  const Δλ = toRad(lon2 - lon1);
+  const a =
+    Math.sin(Δφ / 2) ** 2 +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
+function mergeVehicleStateFromPayload(p) {
+  const prev = vehicleStateById[p.vehicleId];
+  const now = Date.now();
+  let lastMovedAt;
+
+  if (
+    prev &&
+    typeof prev.latitude === 'number' &&
+    typeof prev.longitude === 'number' &&
+    typeof p.latitude === 'number' &&
+    typeof p.longitude === 'number'
+  ) {
+    const d = haversineMeters(prev.latitude, prev.longitude, p.latitude, p.longitude);
+    lastMovedAt =
+      d >= MOVE_THRESHOLD_M ? now : prev.lastMovedAt ?? prev.lastUpdatedAt ?? now;
+  } else {
+    lastMovedAt = now;
+  }
+
+  const inactive = now - lastMovedAt >= INACTIVITY_MS;
+
+  vehicleStateById[p.vehicleId] = {
+    inAnyZone: p.inAnyZone,
+    latitude: p.latitude,
+    longitude: p.longitude,
+    status: p.status,
+    lastUpdatedAt: now,
+    lastMovedAt,
+    inactive,
+  };
+}
+
+function tickActivityFromClock() {
+  const now = Date.now();
+  let changed = false;
+  Object.keys(vehicleStateById).forEach((id) => {
+    const s = vehicleStateById[id];
+    const ref = s.lastMovedAt ?? s.lastUpdatedAt;
+    const inactive = now - ref >= INACTIVITY_MS;
+    if (s.inactive !== inactive) {
+      s.inactive = inactive;
+      changed = true;
+    }
+  });
+  if (!changed) return;
+  updateVehiclesList();
+  refreshSelectedVehicleStyles();
+  if (selectedVehicleId) updateVehicleDrawerUI();
+}
+
+function startActivityRefreshTimer() {
+  if (activityRefreshTimer) clearInterval(activityRefreshTimer);
+  activityRefreshTimer = setInterval(tickActivityFromClock, 60 * 1000);
 }
 
 function openVehicleDrawer(vehicleId) {
@@ -103,6 +179,12 @@ function updateVehicleDrawerUI() {
     drawerStatusBadge.textContent = state?.status ? String(state.status) : '—';
   }
 
+  if (drawerActivityBadge) {
+    const inactive = !!state?.inactive;
+    drawerActivityBadge.className = inactive ? 'pill pill--amber' : 'pill pill--green';
+    drawerActivityBadge.textContent = inactive ? 'Inactive' : 'Active';
+  }
+
   if (drawerLastUpdate) drawerLastUpdate.textContent = formatTimeAgo(state?.lastUpdatedAt);
   if (drawerLat) drawerLat.textContent = formatCoord(state?.latitude);
   if (drawerLon) drawerLon.textContent = formatCoord(state?.longitude);
@@ -123,7 +205,13 @@ function refreshSelectedVehicleStyles() {
       const feature = vehicleFeaturesById[id];
       const state = vehicleStateById[id];
       if (!feature || !state) return;
-      feature.setStyle(createVehicleStyle({ inAnyZone: !!state.inAnyZone, selected: false }));
+      feature.setStyle(
+        createVehicleStyle({
+          inAnyZone: !!state.inAnyZone,
+          selected: false,
+          inactive: !!state.inactive,
+        })
+      );
     });
     return;
   }
@@ -132,7 +220,13 @@ function refreshSelectedVehicleStyles() {
     const feature = vehicleFeaturesById[id];
     const state = vehicleStateById[id];
     if (!feature || !state) return;
-    feature.setStyle(createVehicleStyle({ inAnyZone: !!state.inAnyZone, selected: id === selectedVehicleId }));
+    feature.setStyle(
+      createVehicleStyle({
+        inAnyZone: !!state.inAnyZone,
+        selected: id === selectedVehicleId,
+        inactive: !!state.inactive,
+      })
+    );
   });
 }
 
@@ -167,9 +261,11 @@ function updateVehiclesList() {
     li.className = 'vehicle-item';
     li.setAttribute('data-vehicle-id', vehicleId);
     li.classList.toggle('is-selected', !!selectedVehicleId && vehicleId === selectedVehicleId);
+    const inactive = !!state?.inactive;
     li.innerHTML = `
       <span class="vehicle-dot vehicle-dot--${inZone ? 'green' : 'red'}"></span>
       <span class="vehicle-id">${escapeHtml(vehicleId)}</span>
+      <span class="vehicle-activity-label ${inactive ? 'vehicle-activity-label--inactive' : ''}">${inactive ? 'Inactive' : 'Active'}</span>
       <span class="vehicle-status">${inZone ? 'In zone' : 'Out of zone'}</span>
     `;
     vehiclesList.appendChild(li);
@@ -195,6 +291,72 @@ function escapeHtml(s) {
   const div = document.createElement('div');
   div.textContent = s;
   return div.innerHTML;
+}
+
+const SERVICE_HOURS_URL = '/service-hours.json';
+
+function setServiceHoursLoading() {
+  const root = document.getElementById('service-hours-root');
+  if (!root) return;
+  root.className = 'service-hours';
+  root.innerHTML = '<p class="service-hours-status">Loading schedule…</p>';
+  root.setAttribute('aria-busy', 'true');
+}
+
+function renderServiceHoursIntoRoot(data) {
+  const root = document.getElementById('service-hours-root');
+  if (!root) return;
+
+  if (!data || !Array.isArray(data.zones) || data.zones.length === 0) {
+    root.innerHTML =
+      '<p class="service-hours-status service-hours-status--error">Schedule data is missing or invalid.</p>';
+    root.setAttribute('aria-busy', 'false');
+    return;
+  }
+
+  const html = data.zones
+    .map((zone) => {
+      const name = escapeHtml(String(zone.name ?? '').trim() || 'Zone');
+      const subtitle = escapeHtml(String(zone.subtitle ?? 'Service hours').trim());
+      const rows = Array.isArray(zone.rows) ? zone.rows : [];
+      const lis = rows
+        .map((row) => {
+          const days = escapeHtml(String(row.days ?? '').trim());
+          const hours = escapeHtml(String(row.hours ?? '').trim());
+          const closed = !!row.closed;
+          const timeClass = closed
+            ? 'service-hours-time service-hours-time--closed'
+            : 'service-hours-time';
+          return `<li class="service-hours-row"><span class="service-hours-days">${days}</span><span class="${timeClass}">${hours}</span></li>`;
+        })
+        .join('');
+
+      return `<div class="service-hours-zone"><div class="service-hours-zone-head"><h3 class="service-hours-zone-name">${name}</h3><p class="service-hours-zone-label">${subtitle}</p></div><ul class="service-hours-list">${lis}</ul></div>`;
+    })
+    .join('');
+
+  root.className = 'service-hours';
+  root.innerHTML = html;
+  root.setAttribute('aria-busy', 'false');
+}
+
+function loadServiceHours() {
+  const root = document.getElementById('service-hours-root');
+  if (!root) return;
+  setServiceHoursLoading();
+
+  fetch(SERVICE_HOURS_URL, { cache: 'no-store' })
+    .then((res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return res.json();
+    })
+    .then(renderServiceHoursIntoRoot)
+    .catch((err) => {
+      console.warn('Service hours load failed', err);
+      root.innerHTML =
+        '<p class="service-hours-status service-hours-status--error">Could not load schedule. Check <code>service-hours.json</code> and try again.</p>';
+      root.setAttribute('aria-busy', 'false');
+    });
 }
 
 // --- OpenLayers map setup --------------------------------------------------
@@ -411,11 +573,21 @@ function getVehicleStyleCache() {
   return vehicleStyleCache;
 }
 
-function createVehicleStyle({ inAnyZone, selected = false }) {
+function createVehicleStyle({ inAnyZone, selected = false, inactive = false }) {
   const cache = getVehicleStyleCache();
   if (cache) {
-    if (inAnyZone) return selected ? cache.inZoneSelected : cache.inZone;
-    return selected ? cache.outZoneSelected : cache.outZone;
+    const base = inAnyZone
+      ? selected
+        ? cache.inZoneSelected
+        : cache.inZone
+      : selected
+        ? cache.outZoneSelected
+        : cache.outZone;
+    if (!inactive) return base;
+    return new Style({
+      image: base.getImage(),
+      opacity: 0.52,
+    });
   }
 
   // Fallback: render a dot if OpenLayers isn't ready for some reason.
@@ -431,6 +603,7 @@ function createVehicleStyle({ inAnyZone, selected = false }) {
       fill: new Fill({ color: fillColor }),
       stroke: new Stroke({ color: 'rgba(255,255,255,0.95)', width: 1.5 }),
     }),
+    opacity: inactive ? 0.52 : 1,
   });
 }
 
@@ -495,6 +668,8 @@ function upsertVehicleFeature(update) {
   const { vehicleId, latitude, longitude, inAnyZone } = update;
   const coords = ol.proj.fromLonLat([longitude, latitude]);
   const isSelected = !!selectedVehicleId && vehicleId === selectedVehicleId;
+  const state = vehicleStateById[vehicleId];
+  const inactive = !!state?.inactive;
 
   let feature = vehicleFeaturesById[vehicleId];
   if (!feature) {
@@ -502,12 +677,12 @@ function upsertVehicleFeature(update) {
       geometry: new Point(coords),
       vehicleId,
     });
-    feature.setStyle(createVehicleStyle({ inAnyZone, selected: isSelected }));
+    feature.setStyle(createVehicleStyle({ inAnyZone, selected: isSelected, inactive }));
     vehicleLayer.getSource().addFeature(feature);
     vehicleFeaturesById[vehicleId] = feature;
   } else {
     feature.getGeometry().setCoordinates(coords);
-    feature.setStyle(createVehicleStyle({ inAnyZone, selected: isSelected }));
+    feature.setStyle(createVehicleStyle({ inAnyZone, selected: isSelected, inactive }));
   }
 }
 
@@ -716,13 +891,7 @@ function connectWebSocket() {
 
       if (data.type === 'vehicle_update' && data.payload) {
         const p = data.payload;
-        vehicleStateById[p.vehicleId] = {
-          inAnyZone: p.inAnyZone,
-          latitude: p.latitude,
-          longitude: p.longitude,
-          status: p.status,
-          lastUpdatedAt: Date.now(),
-        };
+        mergeVehicleStateFromPayload(p);
         updateVehiclesList();
         updateBreadcrumbVehicleOptions();
         upsertVehicleFeature(p);
@@ -758,10 +927,12 @@ function connectWebSocket() {
 function startDashboard() {
   createMap();
   loadZones(); // safe even if DB is not yet ready
+  loadServiceHours();
   updateAlertsUI();
   updateVehiclesList();
   updateBreadcrumbVehicleOptions();
   connectWebSocket();
+  startActivityRefreshTimer();
 }
 
 function handleLoginSubmit(event) {
@@ -803,6 +974,10 @@ function handleLoginSubmit(event) {
 }
 
 function logout() {
+  if (activityRefreshTimer) {
+    clearInterval(activityRefreshTimer);
+    activityRefreshTimer = null;
+  }
   Object.keys(vehicleStateById).forEach((k) => delete vehicleStateById[k]);
   Object.keys(vehicleFeaturesById).forEach((k) => delete vehicleFeaturesById[k]);
   selectedVehicleId = null;

@@ -1,0 +1,22 @@
+{
+  "zones": [
+    {
+      "name": "Hollywood West",
+      "subtitle": "Service hours",
+      "rows": [
+        { "days": "Monday–Friday", "hours": "6:00 a.m.–7:00 p.m." },
+        { "days": "Saturday", "hours": "9:00 a.m.–5:00 p.m." },
+        { "days": "Sunday", "hours": "Closed", "closed": true }
+      ]
+    },
+    {
+      "name": "Hollywood East",
+      "subtitle": "Service hours",
+      "rows": [
+        { "days": "Monday–Wednesday", "hours": "10:00 a.m.–9:00 p.m." },
+        { "days": "Thursday–Saturday", "hours": "10:00 a.m.–11:59 p.m." },
+        { "days": "Sunday", "hours": "10:00 a.m.–9:00 p.m." }
+      ]
+    }
+  ]
+}

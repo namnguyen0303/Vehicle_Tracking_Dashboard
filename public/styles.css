@@ -107,6 +107,7 @@ body::before {
   border: 1px solid var(--border-subtle);
   box-shadow: var(--shadow-lg);
   backdrop-filter: blur(10px);
+  text-align: center;
 }
 
 .login-card h2 {
@@ -120,6 +121,10 @@ body::before {
   font-size: 0.9rem;
   color: var(--text-secondary);
   margin-bottom: 1.75rem;
+}
+
+.login-card #login-form {
+  text-align: start;
 }
 
 .login-label {
@@ -178,14 +183,8 @@ body::before {
   transform: scale(0.99);
 }
 
-.login-hint {
-  margin-top: 1rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
 .login-error {
-  margin-top: 0.5rem;
+  margin-top: 1rem;
   font-size: 0.8125rem;
   color: var(--red);
   min-height: 1.2em;
@@ -225,6 +224,10 @@ body::before {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+}
+
+.app-header-actions .btn {
+  width: auto;
 }
 
 .status-badge {
@@ -409,6 +412,12 @@ body::before {
   border-color: rgba(225, 29, 72, 0.25);
   background: rgba(225, 29, 72, 0.1);
   color: rgb(159, 18, 57);
+}
+
+.pill--amber {
+  background: rgba(245, 158, 11, 0.18);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.35);
 }
 
 .pill--muted {
@@ -679,6 +688,93 @@ details:not([open]) .collapsible-chevron {
   background: var(--bg-soft);
 }
 
+.service-hours {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.service-hours-status {
+  margin: 0;
+  padding: 0.35rem 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.service-hours-status--error {
+  color: var(--red);
+  text-align: left;
+}
+
+.service-hours-status--error code {
+  font-size: 0.75rem;
+}
+
+.service-hours-zone {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.service-hours-zone:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.service-hours-zone-head {
+  margin-bottom: 0.55rem;
+}
+
+.service-hours-zone-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.service-hours-zone-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.service-hours-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.service-hours-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.service-hours-days {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  max-width: 52%;
+}
+
+.service-hours-time {
+  color: var(--text-primary);
+  font-weight: 600;
+  text-align: right;
+}
+
+.service-hours-time--closed {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-style: italic;
+}
+
 .history-controls {
   display: grid;
   gap: 0.75rem;
@@ -819,6 +915,19 @@ details:not([open]) .collapsible-chevron {
   color: var(--text-primary);
 }
 
+.vehicle-activity-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.vehicle-activity-label--inactive {
+  color: var(--amber);
+}
+
 .vehicle-status {
   margin-left: auto;
   font-size: 0.7rem;
@@ -902,6 +1011,8 @@ details:not([open]) .collapsible-chevron {
 
 /* Footer */
 .app-footer {
+  position: relative;
+  z-index: 10;
   padding: 0.75rem 1.5rem;
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -914,9 +1025,73 @@ details:not([open]) .collapsible-chevron {
   flex-wrap: wrap;
 }
 
-.footer-tech {
+.app-footer-end {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  margin-left: auto;
+}
+
+/* Hours — footer, opens upward so it is not covered by the side panel */
+.footer-hours {
+  position: relative;
+}
+
+.footer-hours-summary {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
   font-size: 0.7rem;
-  opacity: 0.7;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.45rem;
+  border: 1px solid transparent;
+  user-select: none;
+}
+
+.footer-hours-summary::-webkit-details-marker {
+  display: none;
+}
+
+.footer-hours-summary:hover {
+  background: var(--accent-soft);
+  border-color: rgba(14, 165, 233, 0.25);
+}
+
+.footer-hours-icon {
+  width: 15px;
+  height: 15px;
+}
+
+.footer-hours-chevron {
+  width: 14px;
+  height: 14px;
+  opacity: 0.75;
+  transition: transform 0.2s ease;
+}
+
+.footer-hours:not([open]) .footer-hours-chevron {
+  transform: rotate(-90deg);
+}
+
+.footer-hours-panel {
+  position: absolute;
+  bottom: calc(100% + 0.35rem);
+  right: 0;
+  z-index: 200;
+  width: min(320px, calc(100vw - 2rem));
+  padding: 0.65rem 0.75rem 0.75rem;
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
+  max-height: min(55vh, 320px);
+  overflow-y: auto;
 }
 
 @media (max-width: 900px) {
