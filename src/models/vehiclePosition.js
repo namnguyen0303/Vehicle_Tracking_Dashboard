@@ -55,8 +55,30 @@ async function listPositionsForDay({ vehicleId, date, tz = 'America/New_York' })
   return result.rows;
 }
 
+/**
+ * List positions for all vehicles for one local calendar day (timezone-aware).
+ * Sorted for efficient per-vehicle aggregation.
+ */
+async function listAllPositionsForDay({ date, tz = 'America/New_York' }) {
+  const sql = `
+    SELECT
+      vehicle_id,
+      recorded_at,
+      ST_Y(position) AS latitude,
+      ST_X(position) AS longitude
+    FROM vehicle_positions
+    WHERE recorded_at >= (($1::date)::timestamp AT TIME ZONE $2)
+      AND recorded_at <  ((($1::date + 1))::timestamp AT TIME ZONE $2)
+    ORDER BY vehicle_id ASC, recorded_at ASC;
+  `;
+
+  const result = await db.query(sql, [date, tz]);
+  return result.rows;
+}
+
 module.exports = {
   insertPosition,
   listPositionsForDay,
+  listAllPositionsForDay,
 };
 

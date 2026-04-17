@@ -162,20 +162,22 @@
             </summary>
             <div class="collapsible-body">
               <div class="history-controls">
-                <label class="history-label">
-                  Vehicle
-                  <select id="breadcrumb-vehicle" class="history-select">
-                    <option value="">Select a vehicle…</option>
-                  </select>
-                </label>
-                <label class="history-label">
-                  Day
-                  <input
-                    id="breadcrumb-date"
-                    class="history-date"
-                    type="date"
-                  />
-                </label>
+                <div class="history-fields">
+                  <label class="history-label">
+                    Vehicle
+                    <select id="breadcrumb-vehicle" class="history-select">
+                      <option value="">Select a vehicle…</option>
+                    </select>
+                  </label>
+                  <label class="history-label">
+                    Day
+                    <input
+                      id="breadcrumb-date"
+                      class="history-date"
+                      type="date"
+                    />
+                  </label>
+                </div>
                 <div class="history-actions">
                   <button
                     type="button"
@@ -198,6 +200,24 @@
                   >
                     Clear
                   </button>
+                </div>
+                <div class="util-export">
+                  <div class="util-export-head">
+                    <span class="util-export-title">Utilization</span>
+                    <span class="util-export-note">All vehicles · selected day</span>
+                  </div>
+                  <button
+                    type="button"
+                    id="utilization-export-csv"
+                    class="btn btn--ghost btn--sm util-export-btn"
+                  >
+                    Download Utilization CSV
+                  </button>
+                  <div
+                    id="utilization-status"
+                    class="history-status util-export-status"
+                    aria-live="polite"
+                  ></div>
                 </div>
                 <div
                   id="breadcrumb-status"

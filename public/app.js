@@ -46,7 +46,9 @@ const breadcrumbDateInput = document.getElementById('breadcrumb-date');
 const breadcrumbShowBtn = document.getElementById('breadcrumb-show');
 const breadcrumbClearBtn = document.getElementById('breadcrumb-clear');
 const breadcrumbExportCsvBtn = document.getElementById('breadcrumb-export-csv');
+const utilizationExportCsvBtn = document.getElementById('utilization-export-csv');
 const breadcrumbStatus = document.getElementById('breadcrumb-status');
+const utilizationStatus = document.getElementById('utilization-status');
 const mapBaseSelect = document.getElementById('map-base-select');
 
 let selectedVehicleId = null;
@@ -86,8 +88,17 @@ function haversineMeters(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
 }
 
+function notifyVehicleInactive(vehicleId) {
+  addAlertItem('Vehicle is inactive.', vehicleId);
+}
+
+function notifyVehicleActive(vehicleId) {
+  addAlertItem('Vehicle is active again.', vehicleId);
+}
+
 function mergeVehicleStateFromPayload(p) {
   const prev = vehicleStateById[p.vehicleId];
+  const wasInactive = !!prev?.inactive;
   const now = Date.now();
   let lastMovedAt;
 
@@ -106,6 +117,11 @@ function mergeVehicleStateFromPayload(p) {
   }
 
   const inactive = now - lastMovedAt >= INACTIVITY_MS;
+  if (!wasInactive && inactive) {
+    notifyVehicleInactive(p.vehicleId);
+  } else if (wasInactive && !inactive) {
+    notifyVehicleActive(p.vehicleId);
+  }
 
   vehicleStateById[p.vehicleId] = {
     inAnyZone: p.inAnyZone,
@@ -127,6 +143,8 @@ function tickActivityFromClock() {
     const inactive = now - ref >= INACTIVITY_MS;
     if (s.inactive !== inactive) {
       s.inactive = inactive;
+      if (inactive) notifyVehicleInactive(id);
+      else notifyVehicleActive(id);
       changed = true;
     }
   });
@@ -378,6 +396,11 @@ function getDefaultTimezone() {
 function setBreadcrumbStatus(text) {
   if (!breadcrumbStatus) return;
   breadcrumbStatus.textContent = text || '';
+}
+
+function setUtilizationStatus(text) {
+  if (!utilizationStatus) return;
+  utilizationStatus.textContent = text || '';
 }
 
 function updateBreadcrumbVehicleOptions() {
@@ -828,6 +851,48 @@ async function downloadBreadcrumbCsv() {
   }
 }
 
+async function downloadUtilizationCsv() {
+  if (!breadcrumbDateInput) return;
+  const date = String(breadcrumbDateInput.value || '').trim();
+  const tz = getDefaultTimezone();
+  if (!date) {
+    setUtilizationStatus('Select a day first.');
+    return;
+  }
+
+  const url = `/api/vehicles/utilization?date=${encodeURIComponent(date)}&tz=${encodeURIComponent(
+    tz
+  )}&format=csv`;
+  setUtilizationStatus('Preparing utilization CSV…');
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(text || 'Download failed');
+    }
+    const blob = await res.blob();
+    let filename = `utilization-all-vehicles-${date}.csv`.replace(/[/\\?%*:|"<>]/g, '_');
+    const dispo = res.headers.get('Content-Disposition');
+    if (dispo) {
+      const m = /filename\*?=(?:UTF-8'')?["']?([^"';]+)/i.exec(dispo);
+      if (m) filename = decodeURIComponent(m[1].trim());
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href);
+    setUtilizationStatus(`Downloaded ${filename}`);
+  } catch (err) {
+    console.error('Utilization CSV export error', err);
+    setUtilizationStatus('Utilization CSV download failed.');
+  }
+}
+
 async function loadZones() {
   if (!zoneLayer) return;
 
@@ -1034,6 +1099,9 @@ function bootstrap() {
   }
   if (breadcrumbShowBtn) breadcrumbShowBtn.addEventListener('click', showBreadcrumbTrail);
   if (breadcrumbExportCsvBtn) breadcrumbExportCsvBtn.addEventListener('click', downloadBreadcrumbCsv);
+  if (utilizationExportCsvBtn) {
+    utilizationExportCsvBtn.addEventListener('click', downloadUtilizationCsv);
+  }
   if (breadcrumbClearBtn) breadcrumbClearBtn.addEventListener('click', clearBreadcrumbTrail);
 
   if (mapBaseSelect) {

@@ -128,6 +128,7 @@ Hollywood-app/
 | GET    | `/api/vehicles` | List vehicles with latest positions |
 | GET    | `/api/vehicles/:vehicleId/history?date=YYYY-MM-DD&tz=America/New_York` | Breadcrumb history (JSON) for one vehicle/day |
 | GET    | same + `&format=csv` | Same data as **CSV** download (Excel-friendly) |
+| GET    | `/api/vehicles/utilization?date=YYYY-MM-DD&tz=America/New_York&format=csv` | Daily all-vehicle utilization report CSV (`active_minutes`, `inactive_minutes`, `active_percent`, `first_ping_local`, `last_ping_local`) |
 | GET    | `/api/zones`    | List authorized zones               |
 | GET    | `/api/alerts`   | List recent alerts                  |
 | GET    | `/health`       | Health check                        |
@@ -158,7 +159,7 @@ psql -d hollywood_microtransit -f sql/migrate-remove-speed-kph.sql
 ## History (breadcrumb trail)
 
 - The server stores vehicle position history in `vehicle_positions` when the database is enabled.
-- The side panel **History** section (collapsed by default) provides **Vehicle + Day**, trail on the map, **Download CSV**, and **Clear**.
+- The side panel **History** section (collapsed by default) provides **Vehicle + Day**, trail on the map, **Download CSV**, **Download Utilization CSV** (all vehicles/day), and **Clear**.
 - Retention: the server periodically deletes history rows older than **30 days**.
 
 ### API example
