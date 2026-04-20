@@ -24,6 +24,14 @@ OpenLayers Dashboard (staff-only)
 - Node.js 18+
 - (Optional) PostgreSQL 14+ with PostGIS for production mode
 
+## City handover docs
+
+- Main handover index: `docs/city-handover/README.md`
+- DB setup (CLI/mixed): `docs/city-handover/setup.md`
+- DB setup (pgAdmin): `docs/city-handover/setup-pgadmin.md`
+- Update service zones: `docs/city-handover/change-service-zones.md`
+- Update login credentials: `docs/city-handover/change-login-credentials.md`
+
 ## Local Setup
 
 ### 1. Clone and install
