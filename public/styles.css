@@ -689,7 +689,7 @@ details:not([open]) .collapsible-chevron {
 }
 
 .collapsible--alerts .collapsible-body {
-  max-height: 60vh;
+  max-height: 52vh;
   min-height: 300px;
   overflow: hidden;
   display: flex;
