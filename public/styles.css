@@ -688,6 +688,14 @@ details:not([open]) .collapsible-chevron {
   background: var(--bg-soft);
 }
 
+.collapsible--alerts .collapsible-body {
+  max-height: 60vh;
+  min-height: 300px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 .service-hours {
   display: flex;
   flex-direction: column;
