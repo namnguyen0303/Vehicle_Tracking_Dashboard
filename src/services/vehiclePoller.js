@@ -4,6 +4,16 @@ const vehiclePositionModel = require('../models/vehiclePosition');
 const zoneModel = require('../models/zone');
 const alertModel = require('../models/alert');
 
+const SAMSARA_ERROR_LOG_COOLDOWN_MS = 60 * 1000;
+let lastSamsaraErrorLogAt = 0;
+
+function logSamsaraErrorThrottled(...args) {
+  const now = Date.now();
+  if (now - lastSamsaraErrorLogAt < SAMSARA_ERROR_LOG_COOLDOWN_MS) return;
+  lastSamsaraErrorLogAt = now;
+  console.warn(...args);
+}
+
 /**
  * Vehicle poller – fetches vehicle GPS data from Samsara API and broadcasts updates.
  * Requires SAMSARA_API_TOKEN. No simulated data.
@@ -35,7 +45,7 @@ async function fetchFromSamsara() {
     const body = await res.text();
 
     if (!res.ok) {
-      console.warn('Samsara API error:', res.status, body.slice(0, 500));
+      logSamsaraErrorThrottled('Samsara API error:', res.status, body.slice(0, 500));
       return null;
     }
 
