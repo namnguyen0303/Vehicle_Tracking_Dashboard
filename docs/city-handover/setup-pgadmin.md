@@ -103,11 +103,11 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO hollywood_user;
 
 ### If you get an error
 
-| Error | What to do |
-|-------|------------|
-| "extension postgis does not exist" | PostGIS is not installed. Use Stack Builder to install PostGIS, then run Step 3 again. |
-| "permission denied" | Make sure you're connected as **postgres** (the default). Right-click the database and choose Query Tool; it uses your server connection. |
-| "relation already exists" | The tables were created earlier. You can skip Part A and only run Part B (the GRANT commands). |
+| Error                              | What to do                                                                                                                                |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| "extension postgis does not exist" | PostGIS is not installed. Use Stack Builder to install PostGIS, then run Step 3 again.                                                    |
+| "permission denied"                | Make sure you're connected as **postgres** (the default). Right-click the database and choose Query Tool; it uses your server connection. |
+| "relation already exists"          | The tables were created earlier. You can skip Part A and only run Part B (the GRANT commands).                                            |
 
 ---
 
@@ -157,7 +157,7 @@ cd C:\Users\cudux\Desktop\Documents\Hollywood-app
 npm run dev
 ```
 
-4. Open http://localhost:3000 in your browser.
+4. Open http://localhost:3001 in your browser.
 5. Log in (e.g. `staff` / `password`).
 6. Vehicles from Samsara should appear and be **stored in PostgreSQL**.
 
@@ -204,12 +204,12 @@ npm run import-zones data/hollywood-service-area.geojson
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---------|-----|
-| Can't connect to PostgreSQL in pgAdmin | Check **Services**: `postgresql-x64-16` (or your version) is **Running** |
+| Problem                                 | Fix                                                                          |
+| --------------------------------------- | ---------------------------------------------------------------------------- |
+| Can't connect to PostgreSQL in pgAdmin  | Check **Services**: `postgresql-x64-16` (or your version) is **Running**     |
 | "password authentication failed" in app | Check `.env` - `PGPASSWORD` must match the `hollywood_user` password exactly |
-| "relation vehicles does not exist" | Re-run Step 4 (schema.sql and the GRANT commands) |
-| "extension postgis does not exist" | Install PostGIS: Start menu -> PostgreSQL -> Stack Builder -> PostGIS |
+| "relation vehicles does not exist"      | Re-run Step 4 (schema.sql and the GRANT commands)                            |
+| "extension postgis does not exist"      | Install PostGIS: Start menu -> PostgreSQL -> Stack Builder -> PostGIS        |
 
 ## Rollback
 

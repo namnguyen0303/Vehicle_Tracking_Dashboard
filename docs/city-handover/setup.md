@@ -22,6 +22,7 @@ Set up PostgreSQL + PostGIS for the Hollywood Microtransit app.
 - **If missing:** The PostgreSQL installer may have skipped it. Re-run the installer and select **pgAdmin** as a component, or download from https://www.pgadmin.org/download/
 
 In pgAdmin you can:
+
 - Browse databases, tables, and data
 - Run SQL in a Query Tool (instead of `psql`)
 - Create databases and users via right-click menus
@@ -90,7 +91,7 @@ Open **Command Prompt** or **PowerShell** and run:
 psql -U postgres
 ```
 
-*(If `psql` isn't found, use the full path: `"C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres`)*
+_(If `psql` isn't found, use the full path: `"C:\Program Files\PostgreSQL\16\bin\psql.exe" -U postgres`)_
 
 Enter your `postgres` password when prompted. Then run these commands **one at a time**:
 
@@ -180,7 +181,7 @@ PGPASSWORD=your-secure-password
 npm run dev
 ```
 
-2. Open http://localhost:3000 and log in.
+2. Open http://localhost:3001 and log in.
 3. Vehicles from Samsara should appear and be stored in PostgreSQL.
 4. Zone compliance alerts will work once you add zones (from your city sponsor).
 
@@ -194,13 +195,13 @@ npm run dev
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---------|-----|
-| `psql` not found | Add PostgreSQL `bin` to PATH (Step 3) or use full path |
-| Connection refused | Ensure PostgreSQL service is running: **Services** -> `postgresql-x64-16` -> Start |
-| Password authentication failed | Check `PGPASSWORD` in `.env` matches `hollywood_user` password |
-| `relation "vehicles" does not exist` | Re-run Step 5: `psql -U postgres -d hollywood_microtransit -f sql\schema.sql` |
-| `extension "postgis" does not exist` | Install PostGIS via Stack Builder (Step 2) |
+| Problem                              | Fix                                                                                |
+| ------------------------------------ | ---------------------------------------------------------------------------------- |
+| `psql` not found                     | Add PostgreSQL `bin` to PATH (Step 3) or use full path                             |
+| Connection refused                   | Ensure PostgreSQL service is running: **Services** -> `postgresql-x64-16` -> Start |
+| Password authentication failed       | Check `PGPASSWORD` in `.env` matches `hollywood_user` password                     |
+| `relation "vehicles" does not exist` | Re-run Step 5: `psql -U postgres -d hollywood_microtransit -f sql\schema.sql`      |
+| `extension "postgis" does not exist` | Install PostGIS via Stack Builder (Step 2)                                         |
 
 ## Rollback
 

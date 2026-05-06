@@ -72,18 +72,18 @@ npm start
 
 ### Vehicle activity: Active / Inactive
 
-Implemented in **`public/app.js`** (no extra API or database fields). Used for ops/billing-style visibility when a vehicle has not moved meaningfully for a while.
+Implemented in the frontend scripts (**`public/data-and-ws.js`**, **`public/map-and-styles.js`**, **`public/ui.js`**) (no extra API or database fields). Used for ops/billing-style visibility when a vehicle has not moved meaningfully for a while.
 
 - **Inactive** means: no **meaningful** GPS movement for **1 hour** (`INACTIVITY_MS`).
 - **Meaningful movement** is when the reported position moves at least **25 meters** from the previous point (`MOVE_THRESHOLD_M`), using a Haversine distance check. Smaller jumps (noise, drift, idling) do not reset the clock.
 - Each WebSocket `vehicle_update` merges state (`lastMovedAt`, `lastUpdatedAt`, `inactive`). A **60-second timer** re-evaluates `inactive` so the status can flip without waiting for another message.
 - **UI:** fleet list label, vehicle drawer pill, map marker uses reduced **opacity** when inactive.
 
-To change thresholds or the refresh interval, edit the constants at the top of `public/app.js` (`INACTIVITY_MS`, `MOVE_THRESHOLD_M`, and `startActivityRefreshTimer`).
+To change thresholds or the refresh interval, edit the constants in `public/data-and-ws.js` (`INACTIVITY_MS`, `MOVE_THRESHOLD_M`, and `startActivityRefreshTimer`).
 
 ### Service hours (Hollywood West / East)
 
-- Shown under **Hours** in the **footer** (opens upward). Content is loaded from **`public/service-hours.json`** on dashboard start (`GET /service-hours.json`). The footer panel only has a placeholder in **`public/index.html`**; **`public/app.js`** fetches JSON and renders the same layout as before (with `escapeHtml` on all strings).
+- Shown under **Hours** in the **footer** (opens upward). Content is loaded from **`public/service-hours.json`** on dashboard start (`GET /service-hours.json`). The footer panel only has a placeholder in **`public/index.html`**; **`public/ui.js`** fetches JSON and renders the same layout as before (with `escapeHtml` on all strings).
 - **Editing:** follow `docs/city-handover/change-service-hours.md` for step-by-step instructions and JSON examples.
 
 ## Project Structure
@@ -104,7 +104,9 @@ Hollywood-app/
 │
 ├── public/                             # Static frontend assets served by Express
 │   ├── index.html                      # Dashboard shell (login modal, layout, placeholders)
-│   ├── app.js                          # Frontend logic: map, WebSocket client, UI state, history/export actions
+│   ├── map-and-styles.js               # Frontend logic: OpenLayers map, layers, styles, history/export actions
+│   ├── data-and-ws.js                  # Frontend logic: vehicle state, inactivity logic, WebSocket client
+│   ├── ui.js                           # Frontend logic: login/logout, lists, drawer UI, service hours widget
 │   ├── styles.css                      # Dashboard styling and responsive layout
 │   ├── service-hours.json              # Footer Hours content (safe to edit for schedule updates)
 │   └── site.webmanifest                # PWA/browser metadata

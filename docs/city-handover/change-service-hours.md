@@ -7,7 +7,7 @@ Update the service-hours text shown in the dashboard footer (**Hours** panel).
 ## Where hours come from
 
 - Source file: [`public/service-hours.json`](../../public/service-hours.json)
-- Loaded by frontend code in [`public/app.js`](../../public/app.js)
+- Loaded by frontend code in [`public/ui.js`](../../public/ui.js)
 - Rendered in the footer area defined in [`public/index.html`](../../public/index.html)
 
 ## Prerequisites
