@@ -4,6 +4,8 @@ A real-time monitoring dashboard for microtransit vehicle locations, service-zon
 
 The application combines a Node.js/Express API, a WebSocket stream for live updates, PostgreSQL/PostGIS storage, and an OpenLayers browser dashboard.
 
+Youtube Demo: https://www.youtube.com/watch?v=BVHJjWD-hMM&feature=youtu.be
+
 ## Features
 
 - Live vehicle positions and status updates from the Samsara API
