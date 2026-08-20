@@ -1,7 +1,7 @@
 {
   "name": "hollywood-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "Real-time microtransit vehicle monitoring dashboard with zone compliance alerts.",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

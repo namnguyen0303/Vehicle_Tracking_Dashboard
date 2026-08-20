@@ -3,10 +3,26 @@ node_modules/
 
 # Environment (never commit secrets)
 .env
+.env.*
+!.env.example
 
 # Logs
 *.log
 npm-debug.log*
+
+# Private or generated data
+data/*
+!data/.gitkeep
+public/service-hours.json
+docs/city-handover/
+*.dump
+*.backup
+*.sql.gz
+*.csv
+*.pem
+*.key
+*.p12
+*.crt
 
 # OS
 .DS_Store
